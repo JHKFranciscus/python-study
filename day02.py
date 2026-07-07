@@ -1,43 +1,43 @@
-# #STEP5. 변수 여러 개
-# name="Franciscus"
-# age=28
+#STEP5. 변수 여러 개
+name="Franciscus"
+age=28
 
-# print(name)
-# print(age)
+print(name)
+print(age)
 
-# #STEP6.숫자는 따옴표가 없다
+#STEP6.숫자는 따옴표가 없다
 
-# height = 175
+height = 175
 
-# print(height)
+print(height)
 
-# #STEP7. 문자열 더하기
+#STEP7. 문자열 더하기
 
-# first_name = "Kim"
-# last_name = "Minsu"
+first_name = "Kim"
+last_name = "Minsu"
 
-# print(first_name + last_name)
+print(first_name + last_name)
 
-# #STEP8. 숫자 더히기
+#STEP8. 숫자 더히기
 
-# a = 10
-# b = 20
+a = 10
+b = 20
 
 #STEP 9. 문자열과 숫자는 다르다
 
-# print(a + b)
+print(a + b)
 
-# print("10" + "20")
+print("10" + "20")
 
-# print(10 + 20)
+print(10 + 20)
 
-# #STEP10. input과 형변환
+#STEP10. input과 형변환
 
-# age = int(input("나이를 입력하세요: " ))
+age = int(input("나이를 입력하세요: " ))
 
-# print(age + 1)
+print(age + 1)
 
-#STEP 11. 오늘의 실습(
+#STEP 11. 오늘의 실습
 
 name = input("이름을 입력하세요: ")
 age = int(input("나이를 입력하세요: "))
