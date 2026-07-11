@@ -8,6 +8,7 @@ while True:
     print("2. 전체 점수 보기")
     print("3. 점수 통계")
     print("4. 합격자 수 보기")
+    print("5. 마지막 점수 삭제")
     print("0. 종료")
 
     choice = input("메뉴를 선택하세요: ")
@@ -66,6 +67,14 @@ while True:
                     pass_count += 1
             
             print("합격자 수: ", pass_count)
+    
+    elif choice == "5":
+        if len(scores) != 0:
+            removed_score = scores.pop()
+            print(f"{removed_score}점이 삭제되었습니다.")
+            print("현재 점수: ", scores)
+        else:
+            print("삭제할 점수가 없습니다.")
     
     else:
         print("올바른 메뉴 번호를 입력하세요.")
