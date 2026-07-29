@@ -536,3 +536,46 @@ JSON 기반 도서 관리 프로그램을 `main`, `service`, `storage`로 나누
 ### 배운 점
 
 반환값의 종류를 섞으면 호출하는 쪽의 판단이 복잡해진다. 특히 값과 False를 함께 반환하면 0을 실패와 구분할 수 없다. 입력 변환과 유효성 검사, 객체 상태 변경은 역할을 나눠야 한다. 경계값과 실패 상황은 따로 테스트해야 한다.
+
+
+## 2026 07 29 경험일지 - 상속 기반 상품 관리 프로그램 독립 재현
+
+### 상황
+상속과 객체 구성 관계를 학습한 뒤, 기존 도서 관리 코드를 보지 않고 `Product`, `DownloadProduct`, `ProductManager` 구조를 다시 구현했다.
+
+### 처음 예상
+`find_product()`가 상품을 찾지 못하는 것은 곧 실패를 뜻한다고 생각했다. 그래서 이후 조건문에서 `False`와 비교해도 된다고 봤다.
+
+### 발생한 문제
+`find_product()`는 검색에 실패하면 `None`을 반환하도록 작성했다. 그런데 `change_product_price()`에서는 이렇게 검사했다.
+
+```python
+if change_product is not False:
+```
+
+`None is not False`의 결과는 `True`다. 그래서 존재하지 않는 상품의 가격을 변경하면 `None.change_price()`를 호출하게 되는 구조였다.
+
+전체 조회 결과를 담는 리스트를 어디에서 만들어야 하는지, 가격 변경 메서드를 어떤 객체에서 호출해야 하는지에서도 막혔다.
+
+### 확인한 과정
+- `find_product()`의 실제 실패 반환값이 `None`인지 확인했다.
+- `None is not False`의 결과를 코드 흐름과 대조했다.
+- 존재하지 않는 상품의 가격을 변경하는 테스트를 추가했다.
+- 관리 클래스가 직접 가격을 바꾸는 것이 아니라, 검색한 상품 객체의 `change_price()`를 호출해야 한다는 것을 다시 확인했다.
+
+### 수정한 방법
+```python
+def change_product_price(self, target_name, new_price):
+    change_product = self.find_product(target_name)
+    if change_product is not None:
+        return change_product.change_price(new_price)
+    return False
+```
+
+검색 실패 여부는 `None`으로 확인하고, 가격 변경 작업의 성공 여부는 `True`와 `False`로 반환하도록 역할을 나눴다.
+
+### 실제 결과
+존재하지 않는 상품의 가격 변경을 시도했을 때 오류가 발생하지 않고 `False`가 반환됐다. 기존 상품의 가격도 바뀌지 않았다.
+
+### 배운 점
+같은 '실패'처럼 보여도 메서드의 역할에 따라 반환값의 의미가 다르다. 객체 검색 실패에는 `None`, 변경이나 삭제 같은 작업 실패에는 `False`를 사용한다. 그리고 호출하는 쪽에서는 그 메서드의 반환 규칙에 맞춰 조건을 작성해야 한다.
