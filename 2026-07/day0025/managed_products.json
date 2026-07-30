@@ -1,0 +1,8 @@
+[
+    {
+        "type": "download_product",
+        "name": "게임",
+        "price": 35000,
+        "file_size": 40
+    }
+]

@@ -1,0 +1,19 @@
+[
+    {
+        "type": "book",
+        "title": "파이썬 기초",
+        "price": 20000
+    },
+    {
+        "type": "ebook",
+        "title": "파이썬 전자책",
+        "price": 15000,
+        "file_size": 25
+    },
+    {
+        "type": "audiobook",
+        "title": "파이썬 오디오북",
+        "price": 18000,
+        "play_time": 120
+    }
+]
