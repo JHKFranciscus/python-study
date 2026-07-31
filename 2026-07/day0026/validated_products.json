@@ -1,0 +1,13 @@
+[
+    {
+        "type": "product",
+        "name": "키보드",
+        "price": 50000
+    },
+    {
+        "type": "download_product",
+        "name": "게임",
+        "price": 30000,
+        "file_size": 40
+    }
+]

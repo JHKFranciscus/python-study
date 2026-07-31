@@ -1,0 +1,19 @@
+[
+    {
+        "type": "download_product",
+        "name": "게임",
+        "price": 35000,
+        "file_size": 40
+    },
+    {
+        "type": "product",
+        "name": "마우스",
+        "price": 10000
+    },
+    {
+        "type": "download_product",
+        "name": "자료",
+        "price": 50000,
+        "file_size": 5
+    }
+]

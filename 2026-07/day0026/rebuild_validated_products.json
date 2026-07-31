@@ -1,0 +1,8 @@
+[
+    {
+        "type": "download_product",
+        "name": "편집 프로그램",
+        "price": 90000,
+        "file_size": 15
+    }
+]
