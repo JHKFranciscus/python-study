@@ -1,0 +1,19 @@
+[
+    {
+        "type": "physical",
+        "name": "키보드",
+        "price": 50000
+    },
+    {
+        "type": "download",
+        "name": "파이썬 전자책",
+        "price": 15000,
+        "file_size": 30
+    },
+    {
+        "type": "subscription",
+        "name": "코딩 학습 서비스",
+        "price": 9900,
+        "subscription_months": 6
+    }
+]
