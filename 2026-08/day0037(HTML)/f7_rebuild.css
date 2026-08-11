@@ -1,0 +1,27 @@
+#eovy {
+    color: darkblue;
+    text-align: center;
+}
+
+.card-design {
+    width: 650px;
+    padding: 20px;
+    margin: 20px auto;
+    border: 1px solid gray;
+    border-radius: 10px;
+    background-color: whitesmoke;
+    box-sizing: border-box;
+}
+
+.heading-color {
+    color: darkgreen;
+}
+
+.rmfwk-style {
+    font-size: 18px;
+    color: darkslategray;
+}
+
+#special {
+    color: purple;
+}

@@ -1,0 +1,20 @@
+#page-title {
+    color: navy;
+}
+
+.profile-card {
+    width: 450px;
+    padding: 20px;
+    border: 2px solid gray;
+    margin: 30px;
+    box-sizing: border-box;
+}
+
+.profil {
+    font-size: 18px;
+    color: darkslategray;
+}
+
+.linker {
+    color: darkgreen;
+}

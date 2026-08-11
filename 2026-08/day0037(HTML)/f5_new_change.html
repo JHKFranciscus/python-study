@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>새로운 페이지 구조를 스스로 판단해서 HTML과 CSS를 연결한다.</title>
+    <link rel="stylesheet" href="f5_new_change_style.css">
+</head>
+<body>
+    <h1 id="page-title">개발자 프로필</h1>
+    <h2>프로필 카드</h2>
+    <div class="profile-card">
+        <p class="profil">이름: 홍길동</p>
+        <p class="profil">관심 분야: 웹 개발</p>
+        <p class="profil">현재 목표: HTML/CSS 기초 익히기</p>
+    </div>
+    <h2 class="linker">관련링크</h2>
+    <ul>
+        <li><a href="https://github.com">GitHub</a></li>
+        <li><a href="https://google.com">Google</a></li>
+    </ul>
+</body>
+</html>
+
+<!-- 1. "개발자 프로필" 하나만 특별하게 선택하려 한다.
+   tag / class / id 중 무엇을 사용할 것인가?
+   이유는?
+   특정 element하나를 식별할 때는 id selector를 사용한다.
+
+2. 프로필 카드라는 하나의 영역 안에
+   문단 3개가 들어가야 한다.
+   카드 전체와 문단 3개를 어떤 구조로 묶을 것인가?
+   <div></div>구조를 사용하여 <p></p>를 묶는다
+   
+3. 문단 3개 모두 같은 스타일을 가져야 한다.
+   tag selector / class / id 중 무엇이 적절한가?
+   이유는?
+   여러 element를 같은 그룹으로 묶을 때 적절한 것은 class selector이다.
+
+
+4. profile-card에 width: 450px와
+   box-sizing: border-box가 있다.
+   padding과 border를 추가해도
+   border까지의 최종 가로 너비는 몇 px인가?
+   property인 box-sizing의 value를 border-box로 지정해두면, content, padding, border를 더한 것이 width가 되므로, 450px이다. -->

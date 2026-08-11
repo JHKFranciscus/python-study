@@ -1,0 +1,32 @@
+#page-title {
+    color: navy;
+    text-align: center;
+}
+
+.ulgane_all {
+    width: 600px;
+    padding: 20px;
+    margin: 20px auto;
+    border: 1px solid gray;
+    border-radius: 10px;
+    background-color: whitesmoke;
+    box-sizing: border-box;
+}
+
+.ulgane1 {
+    color: darkgreen;
+}
+
+.ulgane2 {
+    font-size: 18px;
+}
+
+/* 1. margin: 20px auto;에서
+   20px과 auto는 각각 어느 방향에 적용되는가?
+   20px는 상하, auto는 좌우
+
+2. section의 width: 600px는 그대로인데
+   margin의 좌우를 auto로 바꾸면
+   box 자체의 너비가 변하는가, 위치가 변하는가?
+   수정 전 오답: box-sizing을 bordr-box로 설정해놓았으므로 margin은 box 밖을 건드리므로 box위치가 변경된다.
+   width: 600px은 그대로 유지되고, 좌우 margin을 auto로 지정하면 남는 가로 공간을 좌우 margin이 나누어 가지므로 boxdㅢ 위치가 가운데로 이동한다. */

@@ -1,0 +1,84 @@
+h1 {
+    color: darkblue;
+}
+
+h2 {
+    color: green;
+}
+
+p  {
+    font-size: 18px;
+}
+
+li {
+    font-size: 16px;
+}
+
+.study-title {
+    color: orange
+}
+
+#main-title {
+    color: purple;
+}
+
+h1 {
+    color: red;
+}
+
+ol {
+    color: brown;
+    font-size: 20px;
+}
+
+.intro {
+    width: 400px;
+    padding: 10px 30px 20px 40px;
+    border: 3px solid black;
+    margin: 20px 50px;
+    box-sizing: border-box;
+}
+
+/* 1. width: 400px는 content / padding / border / margin 중
+   어느 영역의 크기를 지정하는가?
+   content
+
+2. padding: 20px는
+   content 안쪽인가, content와 border 사이인가,
+   border 바깥인가?
+   content와 border 사이
+
+3. border: 3px solid black에서
+   3px / solid / black은 각각 무엇인가?
+   테두리 선 두께, 선 모양, 선 색
+
+4. margin: 30px는
+   이 element 내부 공간을 늘리는가,
+   다른 element와의 바깥쪽 거리를 만드는가?
+   다른 element와의 바깥쪽 거리를 만든다. */
+
+/* 1. 현재 content-box 상태에서
+   border까지 포함한 box의 가로 너비는 몇 px인가?
+   이유는?
+   content 가로 너비 400px, 양쪽의 padding 너비 합 40px, 양쪽의 border 굵기 합 6px를 합하여 446px이다.
+
+2. box-sizing: border-box를 추가하면
+   border까지 포함한 box의 가로 너비는 몇 px가 되는가?
+   width: 400px안에 content, padding, border가 다 포함되어 400px가 된다.
+
+3. border-box가 되어도 margin: 30px는
+   width: 400px 안에 포함되는가, 포함되지 않는가? 
+   border-box가 되어도 margin은 여전히 밖에 있고 포함되지 않는다.  */
+
+/* 1. padding: 10px 30px 20px 40px;
+   에서 각각 어느 방향인가?
+   10px → 상, 30px → 우, 20px → 하, 40px → 좌
+
+2. margin: 20px 50px;
+   에서 20px과 50px은 각각 어느 방향에 적용되는가?
+   각각 상하, 좌우 방향에 적용된다.
+
+3. box-sizing: border-box 상태에서
+   padding의 좌우 값을 바꿔도
+   border까지 포함한 box의 가로 너비 400px 자체가 커지는가?
+   box-sizing: border-box를 하면 padding 값을 아무리 바꿔도 content, padding, border를 다 포함하여 400px가 된다. */
