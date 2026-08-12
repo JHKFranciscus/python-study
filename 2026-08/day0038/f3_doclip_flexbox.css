@@ -1,0 +1,36 @@
+.firstst {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.firstst-link {
+    display: flex;
+    gap: 18px;
+}
+
+.prof-act {
+    display: flex;
+    flex-direction: row;
+    gap: 32px
+}
+
+.prof-card {
+    width: 240px;
+    border: 1px solid black;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.act-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.act-card {
+    width: 220px;
+    border: 1px solid black;
+    padding: 20px;
+    box-sizing: border-box;
+}

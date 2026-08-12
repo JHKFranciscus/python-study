@@ -1,0 +1,36 @@
+<div class="dashboard">
+    <aside class="sidebar">
+        <h2>Menu</h2>
+        <div class="links">
+            <a href="#">Study</a>
+            <a href="#">Git</a>
+        </div>
+    </aside>
+
+    <section class="contents">
+        <div class="card">Python</div>
+        <div class="card">HTML</div>
+        <div class="card">CSS</div>
+    </section>
+</div>
+
+
+<!-- 1. .sidebar와 .contents를 가로로 배치하려면 어디에 display: flex?
+배치 대상: .sidebar, .contents → 직접 부모 .dashboard
+따라서 .dashboard에 display: flex해야한다.
+2. Study와 Git 사이에 gap을 주려면 어디에 display: flex?
+배치 대상: Study, Git → 직접 부모 .links
+따라서 .links에 display: flex해야한다.
+3. Python / HTML / CSS 카드를 가로로 배치하려면 어디에 display: flex?
+배치 대상: Python,  HTML,  CSS → 직접 부모 .contents
+따라서 .contents에 display: flex해야한다.
+
+
+.links {
+    gap: 20px;
+}
+display: flex를 빼서 .links가 flex container가 아니어서 Study와 Git이 flex item이 아니게 되었기 때문에 flex item사이의 간격을 조절하는 gap property가 적용되지 않았다. -->
+
+
+
+

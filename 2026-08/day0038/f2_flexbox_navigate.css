@@ -1,0 +1,28 @@
+.navbar {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+}
+
+.study-cards {
+    display:flex;
+    flex-direction: row;
+    gap: 24px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.study-card {
+    width: 260px;
+    border: 1px solid black;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.menu {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+}
