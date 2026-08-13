@@ -1,0 +1,19 @@
+.section_all {
+    margin: 32px 3px;
+    border: 2px solid purple;
+    border-radius: 10px;
+    box-shadow: 4px 12px 12px gray;
+    background-color: yellowgreen;
+    color: red;
+    transition: background-color 0.5s, color 0.5s;
+    padding: 10px;
+}
+
+.section_all:hover {
+    background-color: orange;
+    color: blue;
+}
+
+.only_h2 {
+    margin: 0px 0px 10px 0px;
+}
