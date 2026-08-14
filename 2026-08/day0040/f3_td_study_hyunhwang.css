@@ -1,0 +1,16 @@
+body {
+    padding: 40px;
+}
+
+.card {
+    width: 250px;
+}
+
+.wjrrl {
+    width: 520px;
+    margin-top: 20px;
+    padding: 8px;
+    border-radius: 10px;
+    box-shadow: 0.8px 3px 5px orange;
+}
+

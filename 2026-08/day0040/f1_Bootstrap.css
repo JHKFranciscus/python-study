@@ -1,0 +1,17 @@
+.card {
+    border: 1px solid orange;
+    width: 300px;
+    margin: 30px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.card-body {
+    box-sizing: border-box;
+    width: 300px;
+    border: 1px solid black;
+}
+
+.card-title {
+    border: 1px solid purple;
+
+}

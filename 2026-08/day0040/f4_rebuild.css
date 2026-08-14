@@ -1,0 +1,9 @@
+body {
+    padding: 40px;
+}
+
+.card {
+    width: 500px;
+    margin-top: 30px;
+    box-shadow: 3px 0.5px 5px lemonchiffon;
+}

@@ -1,0 +1,14 @@
+body {
+    padding: 40px;
+}
+
+.card {
+    width: 300px;
+}
+
+.apply-form {
+    width: 350px;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
