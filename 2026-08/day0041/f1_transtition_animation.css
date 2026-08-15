@@ -1,0 +1,32 @@
+.study-card {
+    width: 300px;
+    padding: 20px;
+    border: 1px solid #ccc;
+    transition: 0.3s;
+}
+
+.study-card:hover {
+    transform: scale(1.05);
+}
+
+@keyframes move-notice {
+    0% {
+        transform: translate(0)
+    }
+
+    50% {
+        transform: translateY(-20px)
+    }
+
+    100%{
+        transform: translate(0)
+    }
+}
+
+.notice {
+    width: 150px;
+    padding: 20px;
+    border: 1px solid #ccc;
+    animation: move-notice 2s;
+}
+
