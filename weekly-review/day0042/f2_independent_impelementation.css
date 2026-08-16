@@ -1,0 +1,40 @@
+body {
+    margin: 40px auto;
+    max-width: 600px;
+}
+
+.tdStudy {
+    margin-bottom: 24px;
+    background-color: lightblue;
+    padding: 15px;
+    border-radius: 8px;
+    animation: tdstudy 2.7s;
+}
+
+@keyframes tdstudy {
+    0% {
+        transform: translateY(80px);
+        opacity: 0;
+    }
+
+    100% {
+        tranform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.dothing {
+    display: flex;
+    justify-content: space-between;
+    max-width: 400px;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.btn-yogu {
+    transition: transform 0.3s;
+}
+
+.btn-yogu:hover {
+    transform: scale(1.05);
+}
