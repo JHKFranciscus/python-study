@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Ajax의 GET, POST 독립재현</title>
+</head>
+
+<body>
+    <section>
+        <input id="findBook-number" type="number" placeholder="도서번호(0, 1, 2 중 하나)">
+
+        <button id="findBook">도서 조회</button>
+
+
+        <p id="title">제목 표시</p>
+        <p id="price">가격 표시</p>
+        <p id="countStatus">재고 상태 표시</p>
+    </section>
+
+    <section>
+        <input id="buyBook-number" type="number" placeholder="도서 번호">
+        <input id="buyBook-count" type="number" placeholder="수량">
+
+        <button id="request-buy">구매 요청</button>
+
+        <p id="responseMessage"></p>
+    </section>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="f3_Ajax_independent_reproduction.js"></script>
+</body>
+
+</html>
