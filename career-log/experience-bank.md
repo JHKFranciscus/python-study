@@ -2485,3 +2485,104 @@ Flask를 처음 학습한 날이었다. 정적 route와 동적 route, GET/POST�
 
 **Q. 그럼 지금은 Flask를 혼자 구현할 수 있나요?**
 아직 아닙니다. 그래서 `실행 결과가 맞다`와 `원리를 설명하고 다시 구현할 수 있다`를 따로 두고 확인하기로 했습니다. 이번 경험은 앞의 기준만 충족한 상태로 기록해뒀습니다.
+
+
+## 2026-08-25 경험 후보 — HTML form과 Flask의 연결을 HTTP request 흐름으로 이해한 경험
+
+**한 문장 요약 (면접용)**
+form 문법은 따라 쓸 수 있었지만 전체 흐름을 스스로 설명하지 못해서, GET form과 POST form을 각각 직접 실행해 비교하면서 브라우저가 만드는 request가 서버 코드의 어디로 연결되는지 정리한 경험이다.
+
+**외워둘 흐름 3줄**
+
+- `action` → request path → Flask route → 함수
+- `input name` → 전송 데이터 → `request.args` / `request.form`
+- Python 값 → `render_template()` → Jinja → 결과 HTML
+
+---
+
+## 상황
+
+Flask에서 HTML form 입력값을 처리하는 내용을 학습했다. 코드의 각 문법은 예제를 보고 따라 작성할 수 있었지만, form과 Flask 코드가 어디서 어떻게 이어지는지는 잡히지 않은 상태였다.
+
+## 문제 — 헷갈렸던 것 3가지
+
+**(1)** `action="/search"`가 Python 함수를 직접 실행한다고 생각했다.
+
+**(2)** URL이 바뀌면 서버도 바뀌는 것인지 혼동했다.
+
+**(3)** GET과 POST에서 입력값이 어디로 전달되는지 정확히 구분하지 못했다.
+
+정리하면 `form → HTTP request → Flask route → 함수 → 입력값 처리 → template`이라는 전체 연결을 스스로 설명하거나 구성하지 못했다.
+
+## 행동 (문제와 같은 번호)
+
+**(1)** form을 직접 제출해 보면서, `action="/search"`는 브라우저가 `/search`로 새 HTTP request를 보내는 것이고 그 request가 Flask routing을 거쳐 함수와 연결된다는 순서를 확인했다.
+
+**(2)** 주소가 바뀔 때마다 host와 port를 확인했다. `127.0.0.1:5000`이 그대로면 같은 Flask 서버이고 path와 query string만 달라진 것이라고 정리했다.
+
+**(3)** GET form을 실행해 입력값이 query string에 붙는 것을 주소창에서 확인하고 `request.args`로 값을 꺼냈다. 같은 예제를 POST로 변경해, 주소창에는 값이 보이지 않아도 request body의 form 데이터를 `request.form`으로 받을 수 있다는 차이를 확인했다.
+
+**(마무리) 직접 구성한 것**
+같은 `/profile` path에서 GET과 POST를 모두 허용하고 `request.method`에 따라 입력 화면과 결과 처리를 나눴다. 마지막에는 GET 검색과 POST 문의 기능을 하나의 Flask 애플리케이션 안에서 직접 구성했다. 최초 실행은 route 함수 이름 중복 오류로 실패했고, 원인을 확인한 뒤 함수 이름을 분리해서 정상 실행했다.
+
+## 결과
+
+- GET에서는 query string과 `request.args`, POST form에서는 request body와 `request.form`을 구분해서 직접 구현했다.
+- 같은 path에서 `request.method`로 동작을 나누는 것까지 만들었다.
+- 이제 form과 Flask 코드를 볼 때 위의 흐름 3줄을 기준으로 추적할 수 있다.
+
+**정직하게 남길 부분**
+마지막 독립 재현에서 난 함수 이름 중복 오류는 원인을 스스로 찾은 것이 아니라 안내를 받은 뒤 알았다. 오류 상황을 확인하고 함수 이름을 분리해 다시 실행해서 정상 동작을 확인한 것은 직접 했다.
+
+## 배운 점
+
+웹 코드는 문법을 개별적으로 외우기보다, 브라우저가 어떤 request를 만들고 그 request의 값이 서버 코드의 어디로 전달되는지 추적하는 것이 중요하다는 것을 배웠다. 실제로 헷갈렸던 3가지도 GET form과 POST form을 각각 실행해서 눈으로 비교하니 정리됐다.
+
+## 보완할 점
+
+- 여러 route와 template이 동시에 등장하면 연결 관계를 빠르게 판단하는 속도가 아직 느리다.
+- route를 추가할 때 함수 이름까지 스스로 점검하는 습관이 아직 필요하다.
+
+---
+
+# 부록 (면접 전에 보는 용)
+
+## A. 30초 답변
+
+1. **상황** — Flask에서 form 입력값 처리를 배웠는데, 문법은 따라 쓸 수 있어도 form과 Flask 코드가 어디서 이어지는지는 설명하지 못했다.
+2. **문제** — `action`이 Python 함수를 바로 부르는 줄 알았고, GET과 POST에서 값이 어디에 실리는지도 구분하지 못했다.
+3. **행동** — GET form을 실행해 query string과 `request.args`를 확인하고, 같은 예제를 POST로 바꿔 request body와 `request.form`을 비교했다. 그다음 `/profile` 하나에 GET과 POST를 모두 붙여 `request.method`로 나눴다.
+4. **결과** — 마지막에는 GET 검색과 POST 문의를 한 애플리케이션 안에 직접 구성했고, 이제 `action → route → 함수`, `input name → request.args / request.form` 흐름으로 코드를 추적한다.
+
+## B. 예상 꼬리 질문과 답변 방향
+
+**Q. form을 제출하면 실제로 무슨 일이 일어나나?**
+브라우저가 `action`의 path로 새 HTTP request를 만들어 보내고, Flask가 routing으로 그 path에 연결된 함수를 실행한다고 답한다. Python 함수를 직접 부르는 게 아니라는 점을 강조한다.
+
+**Q. GET과 POST는 언제 어떤 걸 쓰나?**
+직접 만들어 본 범위에서는 검색처럼 조회하는 것은 GET, 문의 등록처럼 값을 보내는 것은 POST로 했다고 답한다. GET은 값이 URL query string에 남고 POST는 body로 간다는 차이를 기준으로 설명한다.
+
+**Q. `request.args`와 `request.form`의 차이는?**
+`request.args`는 URL query string에서, `request.form`은 request body의 form 데이터에서 값을 꺼낸다고 답한다.
+
+**Q. POST를 쓰면 데이터가 안전한가?**
+주소창에 보이지 않을 뿐이고 데이터를 암호화하는 방식은 아니라고 답한다.
+
+**Q. 같은 path에서 GET과 POST를 어떻게 나눴나?**
+`/profile` 하나에 GET과 POST를 모두 허용하고 `request.method`로 분기해서, GET이면 입력 화면을 보여주고 POST면 form 값을 처리하도록 만들었다고 답한다.
+
+**Q. 함수 이름 중복 오류는 어떻게 알았나?**
+원인 자체는 안내를 받고 알았다고 솔직히 말한다. 대신 오류가 난 상황을 확인하고 함수 이름을 분리한 뒤 다시 실행해서 정상 동작을 확인한 것은 직접 했다고 덧붙이고, 그 뒤로는 route를 추가할 때 함수 이름부터 본다고 말한다.
+
+**Q. 이 경험에서 무엇을 얻었나?**
+문법을 따로 외우는 방식에서, 브라우저가 만든 request를 서버 코드까지 따라가며 보는 방식으로 바꾼 것이 가장 큰 변화라고 답한다.
+
+## C. 채워야 할 빈칸
+
+- route와 template이 여러 개일 때 연결을 빠르게 판단하는 연습
+- Flask route를 추가할 때 함수 이름 중복을 스스로 점검하기
+
+## D. 면접 전에 코드와 같이 볼 것 (외우지 말고 확인만)
+
+- 실제 코드 파일 — GET 검색 form, `/profile` GET+POST, POST 문의 form
+- GET form 실행 시 주소창에 query string이 붙은 화면

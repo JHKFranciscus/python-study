@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>이제 독립재현 씨발search</title>
+</head>
+
+<body>
+    <form action="/search" method="GET">
+        <div>
+            <label for="search">검색어:</label>
+            <input type="text" id="search" name="titleSearch">
+        </div>
+
+        <button type="submit">검색 버튼</button>
+    </form>
+
+    <form action="/inquiry" method="POST">
+        <div>
+            <label for="name">이름:</label>
+            <input type="text" id="name" name="nameInquiry">
+        </div>
+
+        <div>
+            <label for="inquiry">문의:</label>
+            <input type="text" id="inquiry" name="inquiry">
+        </div>
+
+        <button type="submit">문의 버튼</button>
+
+    </form>
+</body>
+
+</html>
