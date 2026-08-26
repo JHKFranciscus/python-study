@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Flask + Jinja 데이터 흐름 직접 구현query</title>
+</head>
+
+<body>
+    {% if books %}
+    {% for book in books}
+    <ol>
+        <li>id: {{book.id}}</li>
+        <li>제목: {{book.title}}</li>
+        <li>{{book.price}}원</li>
+    </ol>
+    {% endfor %}
+    {% else %}
+    <p>등록된 도서가 없습니다.</p>
+    {% endif %}
+</body>
+
+</html>
