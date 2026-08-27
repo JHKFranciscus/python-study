@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="ko">
+    <title>독립재현 start</title>
+</head>
+
+<body>
+    <section>
+        {% if tasks %}
+        {% for task in tasks %}
+        <h1>{{task}}</h1>
+        <p>{{tasks[task].title}}</p>
+
+        {% if tasks[task].done == False %}
+        <p>미완료</p>
+        <form action="{{url_for('checkC', task_id=task)}}" method="post">
+            <button type="submit">완료 처리</button>
+        </form>
+        {% elif tasks[task].done == True %}
+        <p>완료</p>
+        {% endif %}
+        <form action="{{url_for('deleteC', task_id=task)}}" method="post">
+            <button type="submit">삭제</button>
+        </form>
+
+        <hr>
+        {% endfor %}
+
+        {% else %}
+        <p>자료가 없습니다</p>
+        {% endif %}
+    </section>
+
+    <form action="{{url_for('createC')}}" method="post">
+        <div>
+            <label for="code">code</label>
+            <input type="text" id="code" name="code">
+        </div>
+
+        <div>
+            <label for="title">title</label>
+            <input type="text" id="title" name="title">
+        </div>
+
+        <button type="submit">제출</button>
+    </form>
+</body>
+
+</html>

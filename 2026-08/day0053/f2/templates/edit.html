@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>실제 구현 1edit()</title>
+</head>
+
+<body>
+    <form action="/books/{{book.id}}/edit" method="post">
+        <h1>책 수정</h1>
+        <hr>
+        <div>
+            <label for="title">제목</label>
+            [<input type="text" id="title" name="title" value="{{ book.title }}">]
+        </div>
+
+        <div>
+            <label for="author">저자</label>
+            [<input type="text" id="author" name="author" value="{{ book.author }}">]
+        </div>
+
+        <hr>
+        <button type="submit">[수정]</button>
+    </form>
+</body>
+
+</html>

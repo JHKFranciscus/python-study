@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>요구사항만 보고 수정, 삭제 기능 직접 구현</title>
+</head>
+
+<body>
+    <h1>제목: {{material.name}}</h1>
+    <p>메모: {{material.memo}}</p>
+
+    <form action="{{ url_for('mGoUpdate', m_id=material.id) }}" method="get">
+        <button type="submit">[수정]</button>
+    </form>
+
+    <form action="{{ url_for('mDelete', m_id=material.id)}}" method="post">
+        <button type="submit">[삭제]</button>
+    </form>
+
+</body>
+
+</html>

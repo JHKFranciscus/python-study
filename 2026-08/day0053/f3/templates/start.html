@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>요구사항만 보고 수정, 삭제 기능 직접 구현</title>
+</head>
+
+<body>
+    {% if materials %}
+    {% for material in materials %}
+    <h1>id: {{material.id}}</h1>
+    <a href="{{ url_for('mDetail', m_id=material.id)}}">제목: {{material.name}}</a>
+    <p>메모: {{material.memo}}</p>
+    <hr>
+    {% endfor %}
+    {% endif %}
+</body>
+
+</html>

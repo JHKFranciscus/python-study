@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>실제 구현 1start</title>
+</head>
+
+<body>
+    {% if books %}
+    {% for book in books %}
+    <h1>{{book.id}}번 책 정보</h1>
+
+    <a href="/books/{{book.id}}/edit">제목: {{book.title}}</a>
+
+    <p>저자: {{book.author}}</p>
+    <hr>
+    {% endfor %}
+    {% endif %}
+</body>
+
+</html>
