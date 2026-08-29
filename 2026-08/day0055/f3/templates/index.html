@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>구조가 다른 독립재현</title>
+</head>
+
+<body>
+    <button type="button" onclick="loadall()">전체 조회</button>
+
+    <div id="work-list"></div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="{{ url_for('static', filename='display.js') }}"></script>
+</body>
+
+</html>

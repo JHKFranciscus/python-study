@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>메모 등록 POST</title>
+</head>
+
+<body>
+    <form>
+        <input type="text" id="memo-title" name="title">
+        <input type="text" id="memo-content" name="content">
+
+        <button id="addBtn" type="button">추가 등록</button>
+    </form>
+
+
+    <button type="button" onclick="loadMemos()">전체 조회</button>
+
+
+    <div id="memo-list"></div>
+
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="{{ url_for('static', filename='display.js') }}"></script>
+
+</body>
+
+</html>
