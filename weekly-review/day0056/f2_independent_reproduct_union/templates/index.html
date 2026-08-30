@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>통합 독립 재현</title>
+</head>
+
+<body>
+    <div id="allTaskList">
+        {% for i in range(tasks|length) %}
+        <div>
+            <h2>제목: {{ tasks[i].title }}</h2>
+
+            <p class="doneTask" data-task-id={{i}} onclick="changeDone(this)">완료 여부: {{tasks[i].done}}</p>
+        </div>
+        {% endfor %}
+    </div>
+
+
+    <form>
+        <input type="text" id="addtask">
+
+        <button type="button" onclick="addTask()">할 일 추가</button>
+    </form>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="{{ url_for('static', filename='change.js') }}"></script>
+</body>
+
+</html>

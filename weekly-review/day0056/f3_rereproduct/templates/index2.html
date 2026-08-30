@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="ko">
+    <title>재도전</title>
+</head>
+
+<body>
+    <div>
+        {% for name, score in scores.items() %}
+        <h2>이름: {{name}}</h2>
+        <p>점수: {{score}}</p>
+        {% endfor %}
+    </div>
+    <hr>
+
+    <form action="/add" method="post">
+        <label for="name">이름</label>
+        <input type="text" id="name" name="name">
+
+        <label for="score">점수</label>
+        <input type="text" id="score" name="score">
+
+        <button type="submit">등록 버튼</button>
+    </form>
+    <hr>
+
+    <form action="/search" method="get">
+        <label for="search">찾을 이름</label>
+        <input type="text" id="search" name="searchName">
+
+        <button type="submit">조회</button>
+    </form>
+    <div>
+        <h3>이름: {{searchName}}</h3>
+        <p>점수: {{searchScore}}</p>
+    </div>
+
+    <p>{{missName}}</p>
+
+</body>
+
+</html>
