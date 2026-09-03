@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>게임 정보 변경 페이지</title>
+</head>
+
+<body>
+    <form action="/game/{{ game['_id'] }}/edit" method="post">
+        <div style="display: flex; justify-content: space-between; box-sizing: border-box; width: 250px;">
+            <label for="name">게임 이름: </label>
+            <input type="text" id="name" name="name" value="{{ game['name'] }}">
+        </div>
+
+        <div style="display: flex; justify-content: space-between; box-sizing: border-box; width: 250px;">
+            <label for="price">가격: </label>
+            <input type="text" id="price" name="price" value="{{ game['price'] }}">
+        </div>
+
+        <button type="submit">수정</button>
+    </form>
+</body>
+
+</html>

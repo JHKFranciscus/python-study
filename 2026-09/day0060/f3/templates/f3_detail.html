@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>영화 목록 페이지</title>
+</head>
+
+<body>
+    <h2>제목: {{movie["title"]}}</h2>
+    <p>개봉 연도: {{movie["year"]}}</p>
+    <p>평점: {{movie["rating"]}}</p>
+
+    <a href="/movie/{{movie['_id']}}/edit">영화 정보 수정</a>
+
+    <form action="/" method="get">
+        <button type="submit">목록으로 돌아가기</button>
+    </form>
+
+</body>
+
+</html>

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Template 연습</title>
+</head>
+
+<body>
+    <form action="/books/{{ ubook['_id'] }}/edit" method="post">
+        <div>
+            <label for="title">제목</label>
+            <input type="text" id="title" name="title" value="{{ubook['title']}}">
+        </div>
+
+        <div>
+            <label for="price">가격</label>
+            <input type="number" id="price" name="price" value="{{ubook['price']}}">
+        </div>
+
+        <br>
+
+        <button type="submit">[수정]</button>
+    </form>
+
+</body>
+
+</html>

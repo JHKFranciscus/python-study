@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>영화 목록 페이지</title>
+</head>
+
+<body>
+    <form action="/movie/{{ movie['_id'] }}/edit" method="post">
+        <div>
+            <label for="title">제목:</label>
+            <input type="text" name="title" value="{{ movie['title'] }}">
+        </div>
+
+        <div>
+            <label for="year">개봉 연도:</label>
+            <input type="number" name="year" value="{{ movie['year'] }}">
+        </div>
+
+        <div>
+            <label for="rating">평점:</label>
+            <input type="number" name="rating" value="{{ movie['rating'] }}">
+        </div>
+
+        <button type="submit">수정</button>
+    </form>
+
+</body>
+
+</html>

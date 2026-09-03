@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>게임 관리 페이지</title>
+</head>
+
+<body>
+    <section>
+        <form action="/game" method="post">
+            <div style="display: flex; justify-content: space-between; box-sizing: border-box; width: 250px;">
+                <label for="name">게임 이름: </label>
+                <input type="text" id="name" name="name">
+            </div>
+
+            <div style="display: flex; justify-content: space-between; box-sizing: border-box; width: 250px;">
+                <label for="price">가격: </label>
+                <input type="text" id="price" name="price">
+            </div>
+
+            <button type="submit">등록</button>
+        </form>
+    </section>
+    <hr>
+
+    <section>
+        <form action="/" method="get">
+            <button type="submit">목록 요청</button>
+        </form>
+
+        <table>
+            <thead>
+                <tr style="display: flex; justify-content: space-between; box-sizing: border-box; width: 450px">
+                    <th>게임 이름</th>
+                    <th>가격</th>
+                    <th>수정</th>
+                    <th>삭제</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for game in games %}
+                <tr style="display: flex; justify-content: space-between; box-sizing: border-box; width: 450px">
+                    <td>{{ game["name"] }}</td>
+                    <td>{{ game["price"] }}</td>
+                    <td>
+                        <a href="/game/{{game['_id']}}/edit"> 수정 </a>
+                    </td>
+                    <td>
+                        <form action="/game/{{game['_id']}}/delete" method="post">
+                            <button type="submit">삭제</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    </section>
+
+</body>
+
+</html>

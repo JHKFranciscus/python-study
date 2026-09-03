@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>영화 목록 페이지</title>
+</head>
+
+<body>
+    <a href="/movie">새로운 영화 등록</a>
+    <br>
+
+    <hr>
+    <table>
+        <thead>
+            <tr>
+                <th>제목</th>
+                <th>개봉 연도</th>
+                <th>평점</th>
+                <th>자세한 정보</th>
+                <th>수정</th>
+                <th>삭제</th>
+            </tr>
+        </thead>
+        {% for movie in movies %}
+        <tbody>
+            <tr>
+                <td>{{movie["title"]}}</td>
+                <td>{{movie["year"]}}</td>
+                <td>{{movie["rating"]}}</td>
+                <td>
+                    <a href="/movie/{{movie['_id']}}/detail">정보 보기</a>
+                </td>
+                <td>
+                    <a href="/movie/{{movie['_id']}}/edit">정보 수정</a>
+                </td>
+                <td>
+                    <form action="/movie/{{movie['_id']}}/delete" method="post">
+                        <button type="submit">삭제</button>
+                    </form>
+                </td>
+
+            </tr>
+        </tbody>
+        {% endfor %}
+    </table>
+</body>
+
+</html>
