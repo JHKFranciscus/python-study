@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>할 일 관리 웹</title>
+</head>
+
+<body>
+    <h1>할 일 입력창</h1>
+    <div>
+        <label for="task">할 일</label>
+        <input type="text" id="task">
+
+        <button type="button" id="add-button">등록</button>
+    </div>
+
+    <hr>
+    <h1>할 일 목록</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>할 일 내용</th>
+                <th>현재 완료 여부</th>
+                <th>상태 변경 button</th>
+                <th>삭제 button</th>
+            </tr>
+        </thead>
+        <tbody id="task-status">
+        </tbody>
+    </table>
+
+    <script src="/static/app2.js"></script>
+</body>
+
+</html>

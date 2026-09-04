@@ -3501,3 +3501,96 @@ Flask와 MongoDB를 연결해 CRUD를 구현하다가 DB 연결이 거부되고,
   → 요구된 필드명은 `name`인데 제가 `title`로 저장했습니다. MongoDB 저장 필드명, form의 `name`, Jinja2에서 쓰는 key 세 군데가 같아야 하는데 그걸 맞추지 않았습니다.
 - **상세에서 수정으로 어떻게 넘어가게 했나요?**
   → 상세 화면에 그 document의 `_id`를 담은 수정 링크를 넣었습니다. URL로 오는 `_id`는 문자열이라 서버에서 `ObjectId()`로 변환해서 조회했습니다.
+
+
+## 2026-09-04 경험 후보 — "안 된다"를 단계로 쪼개서 원인 찾기 (Ajax CRUD)
+
+**한 줄 요약**
+할 일 관리 웹을 직접 구현하면서 생긴 오류를 request · JavaScript · MongoDB 단계로 분리해 원인을 좁혔고, CRUD 네 기능을 모두 동작시켰다.
+
+**키워드**: 단계별 원인 분리, status code, `mongosh` 대조, JSON.stringify, callback 전달, `$set`
+
+---
+
+## 1. 상황
+
+- 영화 CRUD를 학습한 뒤, 별도의 할 일 관리 웹에서 조회 · 등록 · 상태 변경 · 삭제를 직접 구성했다.
+- 전체 API 구조는 잡았지만, 실행하니 POST 실패 · button event 오류 · 상태 변경 오류가 이어졌다.
+- 처음에는 **기능 전체가 안 되는 것처럼** 보였다.
+
+---
+
+## 2. 문제 → 어느 단계인지 → 내가 한 것
+
+한꺼번에 보지 않고 오류가 발생한 **위치**를 먼저 나눴다.
+
+| | 증상 | 끊긴 단계 | 조치 |
+|---|---|---|---|
+| 1 | POST 실패 (`400`) | request body 형식 | POST body를 `JSON.stringify()`로 수정 |
+| 2 | button이 동작하지 않음 | JavaScript event 연결 | `querySelectorAll()` 결과를 순회해 **각 button에 callback을 연결** |
+| 3 | 상태 변경이 반영되지 않음 | MongoDB update 방식 | update에 `$set` 적용 |
+| 4 | 화면 출력이 이상함 | collection과 element 처리 | API 응답과 `mongosh` 결과를 대조해 **서버·DB 문제인지 화면 문제인지 분리** |
+
+그리고 CRUD 처리 후 다시 GET request를 보내 최신 데이터를 받아 DOM을 갱신했다.
+
+---
+
+## 3. 원인을 좁힌 방법 (이 경험의 핵심)
+
+- **Flask terminal의 request와 status code**를 보고, 요청이 어느 단계까지 도착했는지 확인했다.
+- **API 응답과 `mongosh` 결과를 비교**해, 서버·DB 쪽 문제와 화면 쪽 문제를 갈랐다.
+
+→ 이 두 가지로 "전부 안 된다"를 "여기서 끊겼다"로 바꿀 수 있었다.
+
+---
+
+## 4. 결과
+
+조회 / 등록 / 완료 ↔ 미완료 상태 변경 / 삭제 — **네 기능이 모두 동작**했다.
+변경 결과가 **페이지 전체 새로고침 없이** 화면과 MongoDB에 반영되는 것을 확인했다.
+
+---
+
+## 5. 배운 점
+
+```
+JavaScript → HTTP request → Flask → MongoDB → HTTP response → DOM
+```
+
+- 웹 기능이 실패했을 때 "CRUD가 안 된다"고 뭉뚱그리지 않고, 위 흐름 중 **어느 단계에서 끊겼는지 먼저 확인**하는 방식이 원인을 찾는 데 효과적이었다.
+- 전체 구조를 설계할 수 있어도 `JSON.stringify()`, callback 전달, `$set` 같은 **세부 연결을 빠뜨리면 기능은 동작하지 않는다.**
+
+---
+
+## 6. 사실관계 — 면접에서 지킬 선
+
+- 전체 CRUD 구조와 API 흐름은 **직접 구성했다.**
+- 오류가 어느 단계에서 났는지 확인하는 과정(status code 확인, `mongosh` 대조)은 **직접 했다.**
+- `JSON.stringify()`, collection / element 처리, event callback 연결, `$set` 등 **일부 오류는 ChatGPT의 교정을 받아 수정했다.**
+- 따라서 **완전 독립 성공 경험으로 표현하지 않는다.**
+
+---
+
+## 부록 A. 면접 30초 답변 (존댓말)
+
+> 영화 CRUD를 학습한 뒤, 할 일 관리 웹을 따로 만들면서 조회, 등록, 완료 상태 변경, 삭제를 직접 구성했습니다. 처음에는 기능 전체가 안 되는 것처럼 보였는데, "CRUD가 안 된다"고 뭉뚱그리지 않고 JavaScript, HTTP request, Flask, MongoDB, DOM 중 어느 단계에서 흐름이 끊겼는지를 나눠서 확인했습니다. Flask 터미널의 status code로 요청이 어디까지 도착했는지 보고, API 응답과 `mongosh` 결과를 비교해 서버·DB 문제인지 화면 문제인지 갈랐습니다. 그렇게 해서 request body의 `JSON.stringify()` 누락, button마다 callback을 연결하지 않은 문제, MongoDB `$set` 누락이 원인이라는 것을 확인했고, 네 기능이 전체 새로고침 없이 동작하게 만들었습니다. 다만 구조 설계와 원인을 좁히는 과정은 직접 했지만, 이 세부 오류들을 실제로 고치는 단계에서는 ChatGPT의 교정을 받았습니다. 그래서 완전히 혼자 해낸 경험이라고는 말씀드리지 않습니다.
+
+## 부록 B. 예상 꼬리질문 + 답변 방향
+
+- **"이거 혼자 다 하신 건가요?"**
+  → 가 어느 단계에서 발생하는지 추적했습니다. 다만 세부 원인 판단과 코드 수정 일부는 ChatGPT의 도움을 받았습니다. **묻기 전에 먼저 말한다.** 어디까지가 내 판단이고 어디부터가 도구의 도움인지 구분해서 말할 수 있다는 것 자체가 답이 된다.
+- **"어떻게 원인을 좁혔나요?"**
+  → 3번 두 가지(status code, `mongosh` 대조)를 순서대로. 이 경험에서 가장 강한 부분.
+- **"`$set`을 왜 써야 하나요?"**
+  → 상태 변경이 반영되지 않아 update 방식 문제로 좁혔고, `$set`을 적용해 해결했다는 사실까지만.
+- **"button이 왜 동작하지 않았나요?"**
+  → `querySelectorAll()` 결과를 순회해 각 button에 callback을 연결해야 했다는 점까지만.
+
+## 부록 C. 아직 못 채운 칸 (확인해서 채울 것)
+
+- [ ] **ChatGPT 교정의 경계** — 네 오류 각각에서 내가 어디까지 좁혔고, ChatGPT가 어디서부터 알려줬는지. 여기가 가장 중요하다.
+직접 구성: Flask route 구조, GET/POST/PATCH/DELETE 연결, ObjectId 처리, 상태 토글 구조, 화면/DB 확인과 최종 동작 검증
+교정받은 부분: JSON.stringify() 누락, collection/element 처리, querySelectorAll() 결과 순회, event callback 전달 방식, $set 누락 등
+- [ ] 네 오류를 어떤 **순서**로, 각각 얼마나 걸려 해결했는지 (기록 없음)
+- [ ] `$set` 없이 `update_one()`을 실행하면 실제로 어떤 결과가 나오는지 (직접 확인 필요)
+→ PyMongo의 update_one()에서 두 번째 argument에 {'status': False}처럼 update operator 없이 넘기면 정상적인 field 수정으로 처리되지 않는다. update document에는 $set 같은 update operator가 필요하다. 이번 코드에서는 {'$set': {'status': False}} 형태로 수정했다.
