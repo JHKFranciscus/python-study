@@ -3594,3 +3594,94 @@ JavaScript → HTTP request → Flask → MongoDB → HTTP response → DOM
 - [ ] 네 오류를 어떤 **순서**로, 각각 얼마나 걸려 해결했는지 (기록 없음)
 - [ ] `$set` 없이 `update_one()`을 실행하면 실제로 어떤 결과가 나오는지 (직접 확인 필요)
 → PyMongo의 update_one()에서 두 번째 argument에 {'status': False}처럼 update operator 없이 넘기면 정상적인 field 수정으로 처리되지 않는다. update document에는 $set 같은 update operator가 필요하다. 이번 코드에서는 {'$set': {'status': False}} 형태로 수정했다.
+
+
+## 2026-09-05 경험 후보 — Flask + MongoDB + fetch() CRUD 연결
+
+**한 줄 요약**
+세 가지를 각각 배운 뒤 하나로 연결해 보고, 막히는 원인이 문법이 아니라 **값 추적**이라는 걸 확인한 경험.
+
+**키워드**: CRUD, fetch, JSON 변환, ObjectId, dataset, 값 추적
+**분류**: 기술 학습형 후보 (대표 경험 아님)
+
+---
+
+## 상황
+
+- Flask, MongoDB, JavaScript `fetch()`를 각각 학습한 뒤, 이를 하나의 웹에서 연결해 조회·등록·상태 변경·삭제까지 구현했다.
+- API의 method와 URL은 직접 설계했다.
+
+```
+GET    /task
+POST   /task
+PATCH  /task/<task_id>
+DELETE /task/<task_id>
+```
+
+---
+
+## 문제
+
+- CRUD의 큰 흐름은 구성할 수 있었지만, 실제 구현에서는 **현재 변수에 무엇이 들어 있는지 정확히 추적하지 못하는 문제가 반복됐다.**
+- DOM element와 value, collection과 element 하나, `dataset`의 string 값, `ObjectId`, JavaScript의 scope를 실제 코드에 연결하는 과정에서 교정이 필요했다.
+
+**대표 사례 (면접에서 이거 하나만 말해도 된다)**
+- 버튼의 `data-important`를 `dataset`으로 읽어와 `=== true`로 비교했는데 동작하지 않았다. `dataset`으로 읽은 값은 boolean이 아니라 문자열 `"true"`였다. 개념은 알고 있었는데 코드에서 바로 연결하지 못한 것이다.
+
+---
+
+## 한 일
+
+- 오류를 개별 문법으로만 보지 않고, 값이 어디를 지나가면서 어떻게 바뀌는지 다시 추적했다.
+
+```
+browser → HTTP request → Flask → MongoDB → Flask → JSON response → JavaScript → DOM
+```
+
+- 그 흐름 위에서 이렇게 연결했다.
+  - JavaScript object는 `JSON.stringify()`로 전송하고, Flask는 `request.get_json()`으로 request body를 처리
+  - MongoDB의 `ObjectId`는 response에서 string으로 변환하고, browser가 보낸 string id는 조회할 때 다시 `ObjectId`로 변환
+  - `dataset`의 값은 string이라는 점을 고려해 상태값 처리
+  - **요구사항에 따라** CRUD 완료 후 다시 GET해서 최신 DB 데이터를 기준으로 DOM 재생성
+
+- 위 항목 중 `JSON.stringify()` 표기, JSON key 연결, `dataset`의 string 처리 등은 **교정을 거친 뒤 연결한 것**이다.
+
+---
+
+## 결과
+
+서버를 직접 실행해 아래가 모두 정상 동작하는 것을 확인했다.
+
+- 메모 조회 / 등록 / important 상태 변경 / 삭제
+- 변경 후 최신 DB 상태를 화면에 재반영
+
+---
+
+## 확인한 점
+
+- 문법 하나를 아는 것보다, 여러 계층을 연결할 때 **현재 변수에 무엇이 들어 있고 다음 단계에서 어떤 type과 형태로 바뀌는지 추적하는 것**이 중요하다.
+
+---
+
+## 독립성 (확정)
+
+- **오늘 구현만으로 독립 구현 성공 여부는 확인하지 않았다.** 정상 동작했다는 사실과 독립 구현 성공은 구분한다.
+- **직접 한 것**: API method·URL 설계 / 상태 변경 버튼의 PATCH 큰 요청 구조 작성 / 서버 실행을 통한 최종 동작 검증
+- **교정받은 것**: `querySelector()`의 반환값 판단, `JSON.stringify()` 표기, JSON key 연결, `dataset` 값 비교, `let`의 block scope 등
+  → 지점별 정확한 경계는 **공부일지 부록 D**에 있다. 여기서는 다시 나열하지 않는다.
+
+---
+
+## 이 경험의 현재 위치 (보관 방침)
+
+- 가치가 없는 경험은 아니지만, **대표 경험으로 확정할 단계는 아니다.** 억지로 강한 자소서 경험처럼 포장하지 않는다.
+- 이후 구조가 다른 웹을 독립 구현하게 되면, 그 경험과 묶어서 **"교정이 필요했던 단계 → 독립 구현 단계"의 변화 근거**로 쓰는 편이 훨씬 강하다.
+- 그때까지는 기술 학습형 후보로 보관한다.
+
+---
+
+## 연결 문서
+
+- 오늘 무엇을 틀렸고 무엇을 배웠는지 상세 기록 → **공부일지 본문**
+- 독립 / 교정 경계 지점별 정리 → **공부일지 부록 D**
+- 말할 때 쓸 30초 문장 → **공부일지 부록 A** (여기에 중복해 두지 않는다)
