@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>재고 관리 웹</title>
+</head>
+
+<body>
+    <form>
+        <div>
+            <label for="item-name">상품명</label>
+            <input type="text" id="item-name">
+        </div>
+
+        <div>
+            <label for="stock-quantity">현재 재고 수량</label>
+            <input type="number" id="stock-quantity">
+        </div>
+
+        <button type="button" onclick="addItem()">상품 등록</button>
+    </form>
+
+    <br>
+    <hr>
+    <table>
+        <thead>
+            <tr>
+                <th>상품명</th>
+                <th>현재 재고</th>
+                <th>재고 변경을 위한 조작</th>
+                <th>삭제를 위한 조작</th>
+            </tr>
+        </thead>
+        <tbody id="items-status">
+
+        </tbody>
+    </table>
+
+    <script src="/static/app.js"></script>
+</body>
+
+</html>

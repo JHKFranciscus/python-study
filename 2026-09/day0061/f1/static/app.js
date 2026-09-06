@@ -9,7 +9,7 @@ function loadMovies() {
             data.movies.forEach(movie => {
                 movie_list.innerHTML += `<li>
                 ${movie.title}
-                <button type="button" class="delete-movie" data-movie-id=${movie._id}>삭제</button>
+                <button type="button" class="delete-movie" data-movie-id="${movie._id}">삭제</button>
                 <button type="button" class="update-movie" data-movie-id="${movie._id}" data-movie-title="${movie.title}">수정</button>
                 </li>`;
             });
