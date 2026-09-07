@@ -3685,3 +3685,35 @@ browser → HTTP request → Flask → MongoDB → Flask → JSON response → J
 - 오늘 무엇을 틀렸고 무엇을 배웠는지 상세 기록 → **공부일지 본문**
 - 독립 / 교정 경계 지점별 정리 → **공부일지 부록 D**
 - 말할 때 쓸 30초 문장 → **공부일지 부록 A** (여기에 중복해 두지 않는다)
+
+
+## 2026-09-08 경험 후보 - 조건 조회 기능 구현 중 JavaScript 데이터 연결 오류를 추적해 정상 동작까지 완성
+
+### 상황 / 목표
+
+Flask + MongoDB + JavaScript로 강의 목록의 난이도별 조회와 시간순 정렬 기능을 구현했다. <select>의 선택값을 query string으로 전달하고, Flask에서 조건 조회한 결과를 다시 DOM에 표시하는 것이 목표였다.
+
+### 문제
+
+Flask와 MongoDB의 조건 조회 구조는 구성했지만 JavaScript에서 다음 연결 오류가 발생했다.
+
+DOM element와 .value 혼동
+query string과 완성된 request URL 혼동
+fetch()에 잘못된 argument 전달
+DOM element와 innerHTML 혼동
+변경된 <select> value를 재조회 때 다시 읽지 않는 구조 작성
+내가 한 행동
+
+오류가 난 부분을 단순히 수정하는 데서 끝내지 않고 각 변수의 현재 value와 type, 다음 코드에서 필요한 값을 순서대로 추적했다.
+
+선택값은 조회 function이 실행될 때마다 다시 읽도록 변경했고, change event에 조회 function 자체를 연결해 조건 변경 시 재조회되도록 수정했다.
+
+### 결과
+
+전체 / beginner / intermediate와 시간 정렬 여부를 조합해 브라우저에서 직접 확인했고, 선택이 바뀔 때마다 조건에 맞는 MongoDB 조회 결과가 정상적으로 화면에 표시되었다.
+
+### 한계 / 평가
+
+큰 구조는 직접 구성했지만 JavaScript 세부 연결에서 여러 차례 교정을 받았으므로 완전 독립 구현 성공은 아니다.
+
+현재로서는 자소서의 주력 경험보다는 문제 해결 과정의 보조 경험 후보로 보관한다.
