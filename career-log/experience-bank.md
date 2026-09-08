@@ -3687,7 +3687,7 @@ browser → HTTP request → Flask → MongoDB → Flask → JSON response → J
 - 말할 때 쓸 30초 문장 → **공부일지 부록 A** (여기에 중복해 두지 않는다)
 
 
-## 2026-09-08 경험 후보 - 조건 조회 기능 구현 중 JavaScript 데이터 연결 오류를 추적해 정상 동작까지 완성
+## 2026-09-07 경험 후보 - 조건 조회 기능 구현 중 JavaScript 데이터 연결 오류를 추적해 정상 동작까지 완성
 
 ### 상황 / 목표
 
@@ -3717,3 +3717,66 @@ DOM element와 innerHTML 혼동
 큰 구조는 직접 구성했지만 JavaScript 세부 연결에서 여러 차례 교정을 받았으므로 완전 독립 구현 성공은 아니다.
 
 현재로서는 자소서의 주력 경험보다는 문제 해결 과정의 보조 경험 후보로 보관한다.
+
+
+## 2026-09-08 경험 후보 — 조회 기능 독립 재현
+
+### 한 줄 요약
+완성 코드 없이 요구사항만 보고 Flask + MongoDB + JavaScript 조회 기능의 전체 구조를 직접 설계했고,
+구현 중 생긴 오류는 코드를 다시 쓰지 않고 값이 지나가는 순서를 따라가며 고쳤다.
+
+---
+
+### 상황
+Flask + MongoDB + JavaScript로 도서 대여 기록 조회 기능을 독립 재현했다.
+완성 코드나 함수 구조는 제공되지 않았고, 요구사항만 있었다.
+
+- 조회: 날짜별 / category별 / 날짜 + category 동시
+- 동작: 조건 변경 시 자동 재조회, 조건 초기화
+- 예외: 허용되지 않은 category는 400 response
+- 표시: MongoDB 조회 결과를 화면에 표시
+
+### 내가 한 일
+
+**client**
+- HTML에 날짜 input, category select, 초기화 버튼, 결과 표시 영역을 만들고 `change` / `click` event를 연결했다.
+- 조회 function 안에서 현재 `.value`를 읽어 `URLSearchParams`로 query string을 만들었다.
+- 완성된 request URL을 `fetch()`에 전달하고, response를 JSON으로 변환한 뒤 DOM에 결과를 표시했다.
+
+**server**
+- `request.args.get()`으로 날짜와 category를 받고, 빈 query dictionary에 실제로 전달된 조건만 추가했다.
+- 허용되지 않은 category는 MongoDB 조회 전에 validation해서 400 response를 반환했다.
+- `find()` 결과를 list로 변환하고 `_id`를 string으로 바꾼 뒤 JSON response로 반환했다.
+
+### 막힌 부분
+전체 구조는 직접 구성했지만 세부 구현에서 오류가 여러 번 났다. 유형은 크게 세 가지였다.
+
+- **이름 · 경로**: static JavaScript resource 경로, DOM id와 parameter 철자
+- **문법 · 누락**: `response.json()` 앞의 `return` 누락, 전체 category용 빈 `<option>` 누락, Python 자료구조 문법, 400 response 작성 방식
+- **값 추적**: 일부 변수와 collection / element의 역할을 잘못 판단
+
+이 과정에서 Claude의 교정과 디버깅을 받아 수정했다.
+
+### 해결 과정
+오류가 날 때마다 코드를 한꺼번에 다시 쓰지 않고, 값이 지나가는 순서를 기준으로 어디서 어긋났는지 찾았다.
+
+- client: `DOM element → .value → URLSearchParams → query string → request URL → fetch()`
+- server: `request.args → query dictionary → find() → Cursor → list → jsonify()`
+- response: `Response 객체 → response.ok / status → response.json() → JavaScript 값 → DOM`
+
+교정 내용을 반영한 뒤, 브라우저에서 날짜별 조회 / category별 조회 / 동시 조회 / 조건 변경 / 초기화가 실제로 동작하는지 다시 확인했다.
+
+### 결과
+**큰 구조 직접 구성 → 세부 구현 오류 다수 발생 → 외부 교정 후 수정 → 브라우저 동작 확인**
+
+요구사항만 보고 Flask / HTML / JavaScript의 구조와 데이터 흐름은 직접 설계할 수 있었다.
+다만 경로, 철자, `return`, 자료구조 문법, collection과 element 구분에서 오류가 많아 완전한 독립 성공은 아니다.
+설계는 되지만, 긴 코드를 처음부터 쓸 때 각 변수의 value/type과 이름을 끝까지 정확하게 유지하는 정확도가 아직 부족하다.
+
+### 면접에서 물어볼 만한 것
+- **조건이 여러 개인데 API를 왜 하나로 만들었나?**
+  → 빈 query dictionary에 실제로 들어온 조건만 추가하면, 날짜만 / category만 / 둘 다 / 조건 없음을 API 하나로 처리할 수 있어서.
+- **잘못된 값은 어떻게 처리했나?**
+  → 허용되지 않은 category는 MongoDB 조회 전에 validation해서 400 response를 반환했다.
+- **막혔을 때 어떻게 해결했나?**
+  → 코드를 다시 쓰지 않고 client / server / response 세 흐름을 따라가며 값이 어디서 어긋났는지 확인했다.
