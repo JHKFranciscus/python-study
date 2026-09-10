@@ -3818,3 +3818,59 @@ record → property → argument → parameter → request URL/body → Flask �
 - **쓸 수 있는 것** — 큰 구조를 먼저 세운 뒤, 복잡한 코드의 오류를 데이터 흐름 단위로 쪼개 추적하고 수정한 방식.
 - **주의** — 지금 단계에서 자소서 주력 경험은 아니다. 나중에 더 큰 프로젝트 경험이 쌓였을 때, 문제 해결 방식의 근거로 꺼내는 보조 경험 후보에 가깝다.
 - **여기 넣지 않을 것** — `response.ok → throw → catch`, `_id → ObjectId` 같은 세부 기술 설명. 이건 공부일지와 회독 노트에 둔다.
+
+
+## 2026-09-10 경험 후보 - 독서 기록 관리 페이지 (Flask + MongoDB + JavaScript)
+
+한 줄: 여러 층을 지나며 이름과 type이 바뀌는 값을 따라가, 코드를 통째로 고치지 않고 오류 위치를 좁혔다.
+
+### 상황
+
+독서 기록 관리 페이지를 만들면서 client, Flask, MongoDB를 연결해야 했다.
+
+### 내가 한 일
+
+* category filter, 날짜 범위 조회, 정렬을 구현했다.
+* PATCH / DELETE 후 현재 filter 상태를 유지한 재조회를 구현했다.
+* 큰 CRUD 구조와 주요 데이터 흐름은 요구사항을 보고 직접 구성했다.
+
+### 막힌 부분
+
+구현 과정에서 세부 오류가 여러 개 나왔다.
+
+* 전체 조회용 option이 없어 category filter가 항상 적용됐다.
+* POST의 HTTP error 처리와 `.catch()`의 실제 처리 코드가 빠져 있었다.
+* JavaScript 변수를 선언하지 않고 사용했다.
+* 같은 값이 여러 층을 지나면서 이름과 type이 달라지는 부분에서 오류가 났다.
+
+값은 이 순서로 이동한다.
+
+```text
+DOM value → JavaScript 변수 → query parameter → Flask 변수
+→ MongoDB query → response → JavaScript data
+```
+
+날짜 값은 `start-date` → `startDate` → `start_date` → `start_date` → `read_date.$gte`처럼 단계마다 다른 이름으로 연결됐고, `_id`는 MongoDB의 `ObjectId`에서 Flask의 string을 거쳐 JavaScript string으로 바뀌었다.
+
+### 해결 과정
+
+전체 코드를 한꺼번에 수정하기보다, 현재 값이 어느 단계까지 정상적으로 전달됐는지와 그 단계의 이름과 type이 무엇인지를 기준으로 문제 위치를 좁혀 확인했다. 일부 오류는 Claude의 도움을 받아 수정했고, 이후 추가 교정을 거쳐 기능을 완성했다.
+
+확인 순서는 이렇게 잡았다.
+
+```
+현재 value → type → collection / element 여부 → 다음 단계에서 사용되는 이름
+→ argument / parameter 전달 → 중간 type 변환 → 최종 value와 type
+```
+
+서로 다른 층을 연결할 때는 비슷하게 생긴 변수명만 보고 같은 값이라고 추정하지 않고, 각 단계의 실제 값을 확인해야 한다는 점을 경험했다.
+
+### 결과
+
+수정 후 실제 브라우저에서 전체 조회, category 단독 조회, 시작일·종료일 단독 조회, 날짜 범위 조회, 복합 조회, 최신순·오래된순 정렬, PATCH / DELETE 후 filter 유지, 잘못된 입력의 HTTP 400 처리를 각각 확인했다.
+
+### 활용도
+
+보조 경험 후보이다. 프로젝트 규모가 작고 구현 과정에서 Claude의 도움을 받아 일부 오류를 수정했기 때문에, 자소서 주력 사례나 완전한 독립 문제 해결 경험으로 표현하기는 어렵다.
+
+다만 이후 더 큰 프로젝트에서 client–server–DB 사이의 데이터 흐름 문제를 해결한 경험이 생긴다면, 이번 경험은 여러 계층을 연결하면서 value와 type, 전달 경로를 추적하는 방식이 형성되기 시작한 사례로 보조적으로 활용할 수 있다.

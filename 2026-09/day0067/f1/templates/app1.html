@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>독서 기록 관리 페이지</title>
+</head>
+
+<body>
+    <section>
+        <div>
+            <label for="new_title">책 제목</label>
+            <input type="text" id="new_title">
+        </div>
+
+        <div>
+            <label for="new_category">분류</label>
+            <input type="text" id="new_category">
+        </div>
+
+        <div>
+            <label for="new_read_date">읽은 날짜</label>
+            <input type="date" id="new_read_date">
+        </div>
+
+        <div>
+            <label for="new_pages">읽은 페이지 수</label>
+            <input type="number" id="new_pages">
+        </div>
+
+        <button type="button" id="add-button">도서 추가</button>
+    </section>
+
+    <hr>
+
+    <div>
+        <select id="category">
+            <option value="">전체</option>
+            <option value="programming">프로그래밍</option>
+            <option value="novel">소설</option>
+            <option value="essay">에세이</option>
+        </select>
+
+        <div>
+            <label for="start_date">시작 일자</label>
+            <input type="date" id="start_date">
+        </div>
+
+        <div>
+            <label for="end_date">종료 일자</label>
+            <input type="date" id="end_date">
+        </div>
+
+        <select id="sort">
+            <option value="latest">최신순</option>
+            <option value="oldest">오래된순</option>
+        </select>
+    </div>
+
+    <hr>
+
+    <ul id="books-list"></ul>
+
+
+    <script src="/static/app1.js"></script>
+</body>
+
+</html>
