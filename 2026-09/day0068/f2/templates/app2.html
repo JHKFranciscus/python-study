@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>구조가 다른 통합 독립 재현</title>
+</head>
+
+<body>
+    <section>
+        <div>
+            <select id="new_subject">
+                <option value="">전체</option>
+                <option value="Python">Python</option>
+                <option value="JavaScript">JavaScript</option>
+                <option value="CS">CS</option>
+                <option value="SSAFY">SSAFY</option>
+            </select>
+        </div>
+
+        <div>
+            <label for="new_study_date">new_study_date</label>
+            <input type="date" id="new_study_date">
+        </div>
+
+        <div>
+            <label for="new_minutes">new_minutes</label>
+            <input type="number" id="new_minutes">
+        </div>
+
+        <div>
+            <label for="new_memo">new_memo</label>
+            <input type="text" id="new_memo">
+        </div>
+
+        <button type="button" id="add-button">추가</button>
+    </section>
+    <hr>
+    <select id="subject">
+        <option value="">전체</option>
+        <option value="Python">Python</option>
+        <option value="JavaScript">JavaScript</option>
+        <option value="CS">CS</option>
+        <option value="SSAFY">SSAFY</option>
+    </select>
+    <div>
+        <label for="start-date">시작 날짜</label>
+        <input type="date" id="start-date">
+    </div>
+    <div>
+        <label for="end-date">종료 날짜</label>
+        <input type="date" id="end-date">
+    </div>
+
+    <select id="sort">
+        <option value="latest">최신순</option>
+        <option value="oldest">오래된순</option>
+    </select>
+
+    <hr>
+
+    <section id="records-list"></section>
+
+    <script src="/static/app2.js"></script>
+</body>
+
+</html>

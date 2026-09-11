@@ -3874,3 +3874,85 @@ DOM value → JavaScript 변수 → query parameter → Flask 변수
 보조 경험 후보이다. 프로젝트 규모가 작고 구현 과정에서 Claude의 도움을 받아 일부 오류를 수정했기 때문에, 자소서 주력 사례나 완전한 독립 문제 해결 경험으로 표현하기는 어렵다.
 
 다만 이후 더 큰 프로젝트에서 client–server–DB 사이의 데이터 흐름 문제를 해결한 경험이 생긴다면, 이번 경험은 여러 계층을 연결하면서 value와 type, 전달 경로를 추적하는 방식이 형성되기 시작한 사례로 보조적으로 활용할 수 있다.
+
+
+## 2026-09-11 경험 후보 - 각 record의 수정 UI와 DB document 연결
+
+**한 줄** — 목록의 모든 record가 수정 form 하나를 공유하던 방식에서 벗어나, 각 record의 input과 `_id`를 연결해 누른 record만 정확히 수정되는 구조를 만들었다.
+
+**키워드** — record별 수정 input · input ↔ `_id` 대응 · PATCH · 수정 후 조회 조건 유지
+
+---
+
+### 상황
+
+* Flask + MongoDB + JavaScript로 공부 세션 관리 페이지를 만들었다.
+* 이전 CRUD는 화면에 공용 수정 input을 두고, 수정 버튼을 누른 record의 `_id`만 전달하는 방식이었다.
+* 이번에는 구조를 바꿔, 조회된 각 record가 자기 현재 값이 들어 있는 수정 input과 수정/삭제 버튼을 직접 가지도록 구현해야 했다.
+* 여러 record가 동시에 화면에 있으므로, 수정 버튼을 눌렀을 때 다른 record의 값이나 `_id`가 섞이면 안 됐다.
+
+### 내가 직접 구성한 것
+
+* GET으로 받은 record를 하나씩 화면에 만들면서 각각에 현재 subject / study_date / minutes / memo, 그 record의 `_id`, 수정 버튼, 삭제 버튼을 연결했다.
+* record를 순회할 때 각 record마다 별도의 input과 button을 새로 생성했다.
+* 수정 button에는 해당 record의 `_id`를 `dataset.id`로 저장했다.
+* button의 click event callback에서는 같은 반복에서 생성한 subject / study_date / minutes / memo input의 현재 value를 직접 읽어 PATCH request에 넘겼다.
+* 그래서 서로 다른 두 record의 input 값을 각각 바꿔 놓아도, 한쪽 버튼을 누르면 그 record만 수정된다.
+* 수정과 삭제가 끝난 뒤에는 기존 조회 function을 다시 실행해, 현재 subject / 날짜 범위 / sort 조건을 유지한 목록을 다시 불러오도록 연결했다.
+
+### 막힌 부분 → 해결 (피드백을 받아 수정한 부분)
+
+1. optional `sort`가 없을 때도 invalid sort로 처리됐다 → 값이 있을 때만 validation하도록 고쳤다.
+2. 잘못된 ObjectId response에 400 status가 빠졌다 → 형식 오류는 400, document 미존재는 404로 분리했다.
+3. request에 없는 field를 서버에서 `None`으로 다시 만들어 수정할 가능성이 있었다 → request에 실제로 들어온 key만으로 update를 구성했다.
+
+* 그 외 기존 CRUD를 확장하는 과정에서도 number input 변환 시점, 400/404 구분, error response key 오류를 교정했다.
+
+### 확인
+
+브라우저에서 아래를 확인했다.
+
+* 첫 번째 record의 minutes만 수정해도 다른 record는 변경되지 않는다.
+* 서로 다른 record의 input에 다른 값을 입력한 뒤 한쪽 수정 버튼만 눌러도 해당 record만 변경된다.
+* 여러 field 동시 수정 / 잘못된 subject PATCH 차단 / 특정 record만 DELETE가 모두 동작한다.
+* filter + 날짜 범위 + sort가 적용된 상태에서도 PATCH·DELETE 후 조회 조건이 유지된다.
+
+### 결과와 평가
+
+요구 동작은 최종적으로 모두 확인했다.
+
+큰 구조는 직접 구성했지만 세부 오류는 피드백으로 수정한 뒤 완료했다. **완전 독립 성공으로 기록하지 않는다.**
+
+### 면접 활용 판단
+
+* **보조 레퍼런스.** 프로젝트 규모가 작고 세부 교정을 받았기 때문에 대표 자소서 경험으로는 약하다.
+* 어제 후보와의 구분 — 어제는 여러 계층을 지나는 value/type을 추적해 오류 위치를 좁힌 경험, 오늘은 여러 record가 동시에 있는 화면에서 UI 요소와 DB document의 대응 관계를 설계한 경험이다.
+* 이런 질문에 꺼낸다.
+
+  * 여러 데이터가 화면에 있을 때 각각을 어떻게 구분했는가
+  * 특정 UI 동작이 정확한 DB document를 수정하도록 어떻게 연결했는가
+  * 기존 CRUD 구조를 다른 UI 구조로 바꿔본 경험이 있는가
+
+---
+
+### 부록 — 면접용
+
+**30초 스크립트**
+
+"공부 세션 관리 페이지를 만들면서 수정 UI 구조를 바꿨습니다. 이전에는 화면에 공용 수정 input을 하나 두고 누른 record의 `_id`만 넘기는 방식이었는데, 이번에는 조회된 record마다 자기 현재 값이 들어 있는 input과 수정·삭제 버튼을 직접 갖도록 만들었습니다. record를 순회하면서 각 record마다 input과 button을 새로 만들고, 수정 button에는 해당 record의 `_id`를 `dataset.id`로 저장했습니다. click event에서는 그 record와 함께 생성된 input들의 현재 값을 읽어 PATCH를 보냈기 때문에, 여러 record의 input을 동시에 바꿔 놓아도 누른 record만 수정됩니다. 수정과 삭제 뒤에는 기존 조회 함수를 다시 실행해서 subject와 날짜 범위, 정렬 조건이 유지된 목록을 다시 불러왔습니다. 다만 sort validation이나 status code 처리 같은 세부는 피드백을 받아 고쳤습니다."
+
+**예상 꼬리질문**
+
+* 다른 record와 섞이지 않게 어떻게 했나요?
+  → record를 순회할 때 각 record마다 input과 button을 따로 만들고, button에 `_id`를 `dataset.id`로 저장했다. click event callback에서는 그 record를 만들 때 생성한 input들의 현재 value만 읽도록 연결했다.
+
+* 수정 후에 왜 목록을 다시 불러오나요?
+  → 현재 subject / 날짜 범위 / sort가 걸린 상태를 유지한 채 DB의 최신 값을 보여주기 위해서다. 기존 조회 function을 재사용했다.
+
+* record 수가 많아지면 어떻게 되나요?
+  → 현재 구현은 조회된 모든 record에 대해 input과 button을 만들고, 재조회 때 기존 목록을 비운 뒤 전체를 다시 render한다. 많은 record에서의 성능은 아직 측정하지 않았다.
+
+* 어디까지 직접 했나요?
+  → record별 input과 `_id`를 연결하는 큰 구조와 PATCH/DELETE 후 재조회 흐름은 직접 구성했다. optional sort validation, HTTP status, request에 없는 field 처리 같은 세부는 피드백을 받아 수정했다.
+
+**아직 빈 칸** — 없음. 많은 record에서의 성능은 아직 검증하지 않았다.
