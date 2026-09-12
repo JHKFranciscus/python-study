@@ -126,7 +126,7 @@ def update_record(record_id):
 
         update_result = records.update_one(
             {"_id": record_id},
-            {"$set": u_data
+            {"$set": u_data}
         )
 
         if update_result.matched_count == 0:

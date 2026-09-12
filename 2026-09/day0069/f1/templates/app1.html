@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Tlqkf</title>
+</head>
+
+<body>
+    <section id="등록">
+        <select id="new_subject">
+            <option value="Python">Python</option>
+            <option value="JavaScript">JavaScript</option>
+            <option value="CS">CS</option>
+            <option value="SSAFY">SSAFY</option>
+        </select>
+
+        <div>
+            <label for="new_study_date">new_study_date</label>
+            <input type="date" id="new_study_date">
+        </div>
+
+        <div>
+            <label for="new_minutes">new_minutes</label>
+            <input type="number" id="new_minutes">
+        </div>
+
+        <div>
+            <label for="new_memo">new_memo</label>
+            <input type="text" id="new_memo">
+        </div>
+
+        <button type="button" id="add-button">추가</button>
+    </section>
+
+    <hr>
+
+    <section id="조회">
+        <select id="subject">
+            <option value="">전체</option>
+            <option value="Python">Python</option>
+            <option value="JavaScript">JavaScript</option>
+            <option value="CS">CS</option>
+            <option value="SSAFY">SSAFY</option>
+        </select>
+
+        <label for="start_date"></label>
+        <input type="date" id="start_date">
+
+        <label for="end_date"></label>
+        <input type="date" id="end_date">
+
+        <select id="sort">
+            <option value="latest">최신순</option>
+            <option value="oldest">오래된순</option>
+        </select>
+    </section>
+
+    <hr>
+
+    <ul id="records-list">일단</ul>
+
+    <hr>
+    <section id="공용 수정 form">
+        <select id="update_subject">
+            <option value="Python">Python</option>
+            <option value="JavaScript">JavaScript</option>
+            <option value="CS">CS</option>
+            <option value="SSAFY">SSAFY</option>
+        </select>
+
+        <div>
+            <label for="update_study_date"></label>
+            <input type="date" id="update_study_date">
+        </div>
+
+        <div>
+            <label for="update_minutes"></label>
+            <input type="number" id="update_minutes">
+        </div>
+        <div>
+            <label for="update_memo"></label>
+            <input type="text" id="update_memo">
+        </div>
+
+        <div>
+            <button type="button" id="update-button">수정 저장</button>
+            <button type="button" id="cancel-button">수정 취소</button>
+        </div>
+    </section>
+
+    <script src="/static/app1.js"></script>
+</body>
+
+</html>

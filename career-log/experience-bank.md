@@ -3956,3 +3956,110 @@ DOM value → JavaScript 변수 → query parameter → Flask 변수
   → record별 input과 `_id`를 연결하는 큰 구조와 PATCH/DELETE 후 재조회 흐름은 직접 구성했다. optional sort validation, HTTP status, request에 없는 field 처리 같은 세부는 피드백을 받아 수정했다.
 
 **아직 빈 칸** — 없음. 많은 record에서의 성능은 아직 검증하지 않았다.
+
+
+## 2026-09-12 경험 후보 - 기능을 하나로 합치자 드러난 것: 계약과 state의 위치
+
+**한 줄** — 따로 구현했던 CRUD·subject filter·날짜 범위 조회·sort를 하나의 공부 기록 관리 프로그램으로 통합했다. 합치는 과정에서 **client-server가 같은 계약을 쓰는지**와 **현재 값과 state가 어디에 있는지**가 실제 문제로 드러났다.
+
+---
+
+## 1. 상황
+
+Flask + MongoDB로 각각 구현해 온 등록·조회·수정·삭제, subject filter, 날짜 범위 조회, sort를 하나의 공부 기록 관리 프로그램으로 통합했다.
+
+기능을 따로 구현할 때보다, 하나로 연결한 뒤에는 URL·HTTP method·request 구조의 일치와 DB·DOM·JavaScript variable에 나뉜 state를 함께 관리하는 것이 중요해졌다.
+
+### 2. 문제 — 두 종류의 어긋남
+
+#### 계약이 어긋난 경우
+
+* 계약은 `PATCH /record/<record_id>`였지만 실제 route를 `/records/<record_id>`로 작성했다.
+* DELETE route에 `methods=["DELETE"]`를 빠뜨렸다.
+
+#### state와 value 처리가 어긋난 경우
+
+* optional field가 실제로 존재하는지 확인하기 전에 값을 읽었다.
+* 빈 string도 실제 수정 값이 될 수 있는데 이를 제외했다.
+* PATCH 성공 후 `editingId` 초기화를 빠뜨렸다.
+
+DELETE method 누락이나 optional field 문제는 실제 browser 오류를 먼저 보고 찾은 것이 아니라, **작성한 코드를 제출한 뒤 피드백 과정에서 발견했다.**
+
+### 3. 내가 직접 한 일
+
+* POST / GET / PATCH / DELETE의 큰 server 구조 구성
+* subject + 날짜 범위 + sort를 함께 처리하는 복합 GET query 구성
+* record별 수정 input 대신 **공용 수정 form + `editingId`** 구조 설계
+* `editingId`에는 **어느 document를 수정할지**, form에는 **어떤 값으로 수정할지**를 두어 역할 분리
+* PATCH / DELETE 후 기존 조회 function을 다시 호출해 현재 filter 상태를 유지하면서 최신 DB data로 화면 갱신
+
+### 4. 피드백을 받은 부분
+
+코드를 제출한 뒤 ChatGPT가 오류 위치와 수정 코드 형태를 제시했다.
+
+* **server** — validation, PATCH route, optional field 처리, 반복된 field 처리, DELETE method
+* **client** — 수정 취소, `editingId` 초기화, Promise `return`, 빈 memo 처리
+
+특히 server의 주요 수정은 **제시된 코드를 그대로 복사·붙여넣어 반영했다.** 따라서 이 부분을 내가 독립적으로 디버깅했다고 기록하지 않는다.
+
+### 5. 결과
+
+수정 후 browser에서 다음 흐름을 모두 확인했다.
+
+* 등록
+* subject + 날짜 범위 + sort 복합 조회
+* 공용 form을 이용한 수정
+* 수정 후 기존 조회 상태 유지
+* 수정 취소
+* 빈 memo 수정
+* 삭제
+* error response 처리
+
+**최종 요구 테스트는 모두 통과했다.**
+
+구현 과정에서 확인된 세부 오류는 server 5종, client 4종으로 **총 9가지 유형**이었다.
+
+정확한 순공 소요 시간은 따로 기록하지 않았으므로 경험 설명에 임의의 시간을 넣지 않는다. 작업 범위는 **server 구성 → client 구성 → 피드백 수정 → browser 전체 통합 테스트**까지였다.
+
+### 6. 이 경험의 정확한 평가
+
+> 여러 기능을 하나의 프로그램으로 연결하는 큰 구조는 직접 구성했지만, 긴 코드에서 API 계약과 state의 세부 일관성을 유지하는 과정에는 피드백이 필요했다.
+
+**완전 독립 성공은 아니다.**
+반대로 큰 구조를 만들지 못한 것도 아니다.
+
+### 7. 경험 분류 — 보조 레퍼런스
+
+작은 학습 프로젝트이고 세부 교정을 받았으므로 대표 자소서 경험으로 과장하지 않는다.
+
+다만 기존 경험과는 분명히 구분된다.
+
+* value / type 경험 → 여러 계층을 지나는 **하나의 값을 추적**
+* record UI 경험 → 여러 record 중 **화면 요소와 특정 document를 연결**
+* 이번 경험 → 여러 기능을 통합하며 **client-server 계약과 state의 일관성을 맞춤**
+
+---
+
+## 부록 — 면접용
+
+### 30초 구두 스크립트
+
+> 따로 구현했던 CRUD, filter, 날짜 조회, 정렬 기능을 하나의 공부 기록 관리 프로그램으로 통합했습니다. 공용 수정 form과 `editingId`를 사용해 어느 document를 수정할지와 어떤 값으로 수정할지를 분리했습니다. 큰 구조는 직접 구성했지만 실제 통합 과정에서는 PATCH route가 처음 정한 계약과 다르거나 DELETE method를 빠뜨리는 세부 오류가 있었고, 이 부분은 코드 피드백을 받아 수정했습니다. 기능 하나를 만드는 것과 여러 계층의 계약과 state를 일관되게 연결하는 것은 다른 문제라는 점을 확인했습니다.
+
+### 핵심 꼬리질문
+
+#### `editingId`를 왜 따로 뒀나요?
+
+공용 수정 form 하나를 여러 record가 공유하므로, 현재 어느 document를 수정 중인지 별도로 기억해야 했다. `editingId`는 수정 대상을, form value는 수정할 값을 담당하도록 나눴다.
+
+#### 수정·삭제 후 왜 다시 조회했나요?
+
+DB가 바뀌어도 기존 DOM은 자동으로 바뀌지 않는다. 현재 filter 값을 유지한 채 최신 DB data를 다시 받아 화면을 맞추기 위해 `loadRecords()`를 다시 호출했다.
+
+#### 오류는 어떻게 발견했나요?
+
+모든 오류를 직접 실행 증상으로 찾아낸 것은 아니다. 코드를 제출한 뒤 피드백 과정에서 route, method, optional field 등의 세부 오류를 발견했고 server의 주요 수정 코드는 그대로 적용했다.
+
+#### 어디까지 직접 했나요?
+
+큰 CRUD 구조, 복합 조회, 공용 form + `editingId`, 수정·삭제 후 조회 상태 유지 구조는 직접 만들었다. 세부 오류의 발견과 수정에는 피드백을 받았다.
