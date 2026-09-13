@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>10주차 주간 독립 재현</title>
+</head>
+
+<body>
+    <section id="등록폼">
+        <div>
+            <label for="new_title">title</label>
+            <input type="text" id="new_title">
+
+
+            <select id="new_priority">
+                <option value="low">low</option>
+                <option value="normal">normal</option>
+                <option value="high">high</option>
+            </select>
+        </div>
+
+        <button type="button" id="add-button">등록</button>
+    </section>
+
+    <hr>
+
+    <table>
+        <thead>
+            <tr>
+                <th>title</th>
+                <th>status</th>
+                <th>priority</th>
+                <th>sort</th>
+                <th>변경</th>
+                <th>삭제</th>
+            </tr>
+            <tr>
+                <th></th>
+                <th>
+                    <select id="status">
+                        <option value="">전체</option>
+                        <option value="todo">todo</option>
+                        <option value="doing">doing</option>
+                        <option value="done">done</option>
+                    </select>
+                </th>
+                <th>
+                    <select id="priority">
+                        <option value="">전체</option>
+                        <option value="low">low</option>
+                        <option value="normal">normal</option>
+                        <option value="high">high</option>
+                    </select>
+                </th>
+                <th>
+                    <select id="sort">
+                        <option value="latest">최신순</option>
+                        <option value="oldest">오래된순</option>
+                    </select>
+                </th>
+                <th></th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody id="tasks-list">
+
+        </tbody>
+    </table>
+
+    <script src="/static/app1.js"></script>
+</body>
+
+</html>
