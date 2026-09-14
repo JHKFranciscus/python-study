@@ -4171,3 +4171,191 @@ task별 button click → 그 자리에서 task._id / task.status 사용 → 바�
 - [ ] sort를 최종적으로 어떤 필드 기준으로 고쳤는지 (`createdAt`? `_id`?)
 - [ ] filter 유지 재조회를 어떻게 구현했는지 (전역 변수? URLSearchParams?)
 - [ ] `editingId`를 두지 않았을 때의 trade-off는 확인하지 않았다 — 물어보면 "거기까지는 확인하지 않았다"고 답할 것
+
+
+## 2026-09-14 경험 후보 - `editingId` 없이 row 단위로 PATCH 대상을 정한 구조
+
+**한 줄**  
+각 row의 `_id`와 현재 DOM value를 바로 사용하는 PATCH 구조를 직접 구현하면서, 수정 대상과 전송 시점이 분리되지 않은 경우에는 별도 `editingId` state가 필요하지 않다는 점을 확인했다.
+
+**분류**: 보조 레퍼런스  
+**독립성**: 부분 독립 성공  
+**키워드 앵커**: 회의실 예약 CRUD · `editingId` · row 단위 PATCH · state가 필요한 조건 · filter 유지 재조회
+
+---
+
+### 1. 상황과 판단
+
+Flask + MongoDB + JavaScript CRUD 학습에서 이전에 두 가지 수정 구조를 써 본 적이 있었다.
+
+- 공부 기록 관리: 공용 수정 form + `editingId`
+- 작업 관리: button event에서 `_id`와 현재 status로 다음 status를 계산한 뒤 즉시 PATCH
+
+4단계 완료 기준을 점검하기 위해, 기존 두 프로그램과 다른 row 단위 수정 구조가 요구사항으로 주어졌다.
+
+각 reservation row 안에는 다음 요소가 모두 있었다.
+
+- `_id`
+- name input
+- room select
+- date input
+- purpose input
+- 저장 버튼
+- 삭제 버튼
+
+이 구조를 구현하면서 기존의 공용 수정 form 방식과 비교해 보니, 수정 대상을 선택하는 시점과 실제 PATCH를 보내는 시점이 분리되어 있지 않았다.
+
+따라서 이 경우에는 수정 대상을 나중까지 기억하기 위한 `editingId`가 필요하지 않고, 저장 버튼을 누른 row에서 대상과 값을 동시에 얻으면 된다는 점을 확인했다.
+
+### 2. 내가 한 일
+
+- Flask + MongoDB + JavaScript를 연결해 POST / GET / PATCH / DELETE CRUD 전체 구조를 구성했다.
+- GET response를 이용해 reservation마다 수정 가능한 row를 만들었다.
+- 각 row 안에 name input, room select, date input, purpose input을 배치했다.
+- 저장 버튼을 누르면 그 row의 `reservation._id`로 어느 document를 수정할지 결정했다.
+- 같은 row의 현재 input/select DOM value로 어떤 값을 저장할지 결정했다.
+- 해당 값을 PATCH request body로 보냈다.
+- PATCH / DELETE 성공 후 filter state를 초기화하지 않고 같은 조건으로 GET을 다시 요청했다.
+- 최신 MongoDB 상태를 기준으로 DOM을 다시 구성했다.
+
+data flow는 다음과 같았다.
+
+`reservation._id`
+→ 수정할 document 결정
+
+현재 row의 DOM value
+→ 수정할 값 결정
+
+`PATCH`
+→ MongoDB 수정
+
+현재 filter 유지
+→ GET 재조회
+
+최신 response
+→ DOM 다시 render
+
+### 3. 막힌 것과 해결
+
+CRUD의 큰 구조와 row 단위 PATCH data flow는 직접 구성했지만, 첫 구현에는 세부 계약 오류가 있었다.
+
+대표적으로 다음 문제가 있었다.
+
+- `nearest` / `latest` sort 방향 불일치
+- `sort`가 optional인데 sort 미지정 흐름을 처음에는 별도로 처리하지 못함
+- PATCH에서 optional `room` field의 존재 여부를 확인하기 전에 value에 접근
+- 존재하지 않는 PATCH resource에 400 반환
+- DELETE 대상이 없을 때 404 status 누락
+- `response.ok === false`일 때 error 값을 return만 하고 `throw`하지 않아 Promise가 rejected 되지 않음
+- `console.log` typo
+
+이 부분들은 피드백을 받은 뒤 요구사항과 실제 코드를 대조해 수정했다.
+
+따라서 세부 수정까지 완전 독립 성공한 경험으로 기록하지 않는다.
+
+### 4. 결과
+
+수정 후 browser와 Console에서 다음을 확인했다.
+
+- 예약 등록
+- 전체 조회
+- room 단독 filter
+- 시작 날짜 단독 조회
+- 종료 날짜 단독 조회
+- 날짜 범위 조회
+- room + 날짜 범위 복합 조회
+- `nearest` / `latest` 예약 날짜 기준 sort
+- row 내부 값 수정
+- PATCH 후 기존 filter 유지
+- DELETE 후 기존 filter 유지
+- invalid request → 400
+- 존재하지 않는 resource → 404
+
+최종적으로 row 내부의 `_id`와 DOM value를 직접 연결한 PATCH 구조가 정상 동작했다.
+
+### 5. 배운 점
+
+`editingId` 같은 state는 수정 기능 자체에 항상 필요한 것이 아니다.
+
+수정 대상을 선택한 시점과 실제 PATCH를 보내는 시점이 떨어져 있어 그 대상을 나중까지 기억해야 할 때 별도 state가 필요하다.
+
+반대로 이번 구조처럼 같은 row의 event에서 수정 대상과 수정 값을 바로 얻을 수 있다면 별도의 `editingId` 없이도 수정 대상을 결정할 수 있다.
+
+또한 큰 data flow를 구성하는 것과 세부 계약을 정확히 유지하는 것은 별개의 문제였다.
+
+코드가 실행되는지만 보는 것이 아니라 다음 흐름에서 처음 요구한 의미가 끝까지 유지되는지 확인해야 했다.
+
+`요구사항 → client request → Flask → MongoDB → HTTP response → client`
+
+### 6. 독립성
+
+**부분 독립 성공**
+
+#### 독립적으로 한 부분
+
+- Flask + MongoDB + JavaScript CRUD 전체 큰 구조 구성
+- 주어진 row 단위 PATCH 요구사항을 실제 코드로 연결
+- 각 row의 `_id`와 DOM value를 수정 대상과 수정 값에 연결
+- optional query parameter 조합
+- 날짜 범위 조회
+- filter 유지 재조회
+- 수정 후 browser / Console 검증
+- `editingId`가 필요하지 않은 이유를 기존 수정 구조와 비교해 설명
+
+#### 제시받은 조건
+
+- 각 row 내부에 수정용 input/select를 두는 구조
+- 공용 수정 form을 사용하지 않는 조건
+- `editingId`를 사용하지 않는 조건
+
+#### 피드백 후 수정한 부분
+
+- `nearest` / `latest` sort 방향
+- sort 미지정 흐름
+- optional `room` 존재 여부
+- 400 / 404 처리
+- Promise rejected 흐름
+- 단순 typo
+
+---
+
+### 부록: 면접용
+
+#### 30초 구두 스크립트
+
+회의실 예약 CRUD를 구현하면서 row 단위 수정 구조를 사용했습니다. 각 예약 row 안에 `_id`, 수정할 input 값, 저장 버튼이 모두 있어서 수정 대상을 선택하는 시점과 PATCH를 보내는 시점이 분리되어 있지 않았습니다. 그래서 별도 `editingId` 없이 그 row에서 대상과 값을 바로 얻어 PATCH했습니다. 이 구현을 기존 공용 수정 form 방식과 비교하면서, `editingId` 같은 state는 수정 기능 자체에 필요한 게 아니라 수정 대상을 나중까지 기억해야 할 때 필요하다는 점을 확인했습니다.
+
+#### 예상 꼬리질문과 답변 방향
+
+- **"그 state를 왜 만들지 않았나?"**  
+  대상 선택 시점과 PATCH 전송 시점이 분리되어 있지 않아 수정 대상을 별도로 기억해 둘 필요가 없었다고 답한다.
+
+- **"그럼 `editingId`는 언제 필요한가?"**  
+  공용 수정 form처럼 수정 대상을 먼저 선택하고 실제 PATCH는 나중에 보내는 구조에서 필요하다. 이전 공부 기록 관리 구현을 예로 든다.
+
+- **"이 구조를 처음부터 직접 설계한 건가?"**  
+  row 내부에서 수정하고 `editingId`를 사용하지 않는 조건은 요구사항으로 제시받았다. 그 조건을 Flask + MongoDB + JavaScript CRUD 전체 흐름으로 직접 구현했고, 기존 구조와 비교하면서 왜 별도 state가 필요하지 않은지를 이해했다고 답한다.
+
+- **"요구사항과 코드가 어긋난 건 어떻게 알았나?"**  
+  세부 오류는 피드백을 받은 뒤 실행 여부만 보지 않고 요구사항과 실제 코드를 항목별로 대조해 수정했다고 그대로 말한다.
+
+- **"수정 후 화면은 어떻게 갱신했나?"**  
+  filter를 초기화하지 않고 같은 조건으로 GET을 다시 요청해 최신 MongoDB 상태를 기준으로 DOM을 다시 만들었다고 답한다.
+
+- **"400과 404는 어떻게 구분했나?"**  
+  잘못된 request 내용은 400, 요청 형식은 유효하지만 해당 resource가 존재하지 않는 경우는 404로 구분했다고 답한다.
+
+- **"`fetch()`에서 400이나 404가 오면 자동으로 catch로 가나?"**  
+  자동 rejected 되지 않으므로 `response.ok`를 확인하고 필요하면 직접 `throw`해서 rejected 흐름을 만들어야 한다고 답한다.
+
+#### 구현 사실 추가 메모
+
+- 피드백 주체: ChatGPT
+- event 처리: 각 row를 생성할 때 저장 버튼과 삭제 버튼에 각각 `addEventListener()`를 연결함
+- PATCH 실패 처리: `catch`에서 `console.log(err.message)`로 Console에 출력했으며 별도 사용자용 error UI는 구현하지 않음
+- 모든 row에 수정용 input/select가 항상 노출되는 구조임
+- row가 많아졌을 때의 UI 개선이나 event delegation 최적화는 이번 학습 범위에서 다루지 않음
+- 같은 회의실의 동일 시간대 중복 예약 검증은 이번 구현 요구사항에 포함하지 않음
+- `sort` 미지정 시 별도 sort를 적용하지 않음
+- `nearest` → `date` 오름차순
+- `latest` → `date` 내림차순

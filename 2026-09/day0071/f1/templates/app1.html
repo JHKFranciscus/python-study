@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>회의실 예약 관리 프로그램</title>
+</head>
+
+<body>
+    <section>
+        <div>
+            <label for="new_name">예약자</label>
+            <input type="text" id="new_name">
+        </div>
+
+        <div>
+            <label for="new_room">회의실</label>
+            <input type="text" id="new_room" placeholder="A / B / C">
+        </div>
+
+        <div>
+            <label for="new_date">날짜</label>
+            <input type="text" id="new_date" placeholder="YYYY-MM-DD">
+        </div>
+
+        <div>
+            <label for="new_purpose">목적</label>
+            <input type="text" id="new_purpose">
+        </div>
+
+        <button type="button" id="add-button">추가 등록</button>
+    </section>
+
+    <hr>
+
+    <section>
+        <select id="room">
+            <option value="">전체</option>
+            <option value="A">A</option>
+            <option value="B">B</option>
+            <option value="C">C</option>
+        </select>
+
+        <label for="start_date">시작일자</label>
+        <input type="date" id="start_date">
+
+        <label for="end_date">종료일자</label>
+        <input type="date" id="end_date">
+
+        <select id="sort">
+            <option value="">별도로 지정하지 않음</option>
+            <option value="nearest">예약 날짜가 가까운 순</option>
+            <option value="latest">예약 날짜가 먼 순</option>
+        </select>
+
+        <button type="button" id="show-button">조회</button>
+    </section>
+
+    <hr>
+
+    <table>
+        <thead>
+            <tr>
+                <th>예약자</th>
+                <th>회의실</th>
+                <th>날짜</th>
+                <th>목적</th>
+                <th>저장 버튼</th>
+                <th>삭제 버튼</th>
+            </tr>
+        </thead>
+        <tbody id="reservations-list"></tbody>
+    </table>
+
+
+
+    <script src="/static/app1.js"></script>
+</body>
+
+</html>
