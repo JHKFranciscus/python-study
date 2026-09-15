@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>지원 일정 관리 프로그램</title>
+</head>
+
+<body>
+    <section id="여기는추가필터">
+        <div>
+            <label for="new-company">new-company</label>
+            <input type="text" id="new-company">
+        </div>
+
+        <div>
+            <label for="new-position">new-position</label>
+            <input type="text" id="new-position">
+        </div>
+
+        <div>
+            <label for="new-deadline">new-deadline</label>
+            <input type="date" id="new-deadline">
+        </div>
+
+        <div>
+            <label for="new-stage">new-stage</label>
+            <select id="new-stage">
+                <option value="planned">planned</option>
+                <option value="submitted">submitted</option>
+                <option value="interview">interview</option>
+                <option value="finished">finished</option>
+            </select>
+        </div>
+
+        <div>
+            <label for="new-memo">new-memo</label>
+            <input type="text" id="new-memo">
+        </div>
+
+        <button type="button" id="add-button">등록</button>
+    </section>
+
+    <hr>
+
+    <section id="여기는조회filter">
+        <select id="stage">
+            <option value="">전체 stage</option>
+            <option value="planned">planned</option>
+            <option value="submitted">submitted</option>
+            <option value="interview">interview</option>
+            <option value="finished">finished</option>
+        </select>
+
+
+        <label for="start_date">start_date</label>
+        <input type="date" id="start_date">
+
+        <label for="end_date">end_date</label>
+        <input type="date" id="end_date">
+
+        <select id="sort">
+            <option value="">생성순</option>
+            <option value="nearest">deadline 가까운 것</option>
+            <option value="latest">deadline 먼 것</option>
+        </select>
+
+        <button type="button" id="reset">조회 조건 초기화</button>
+    </section>
+
+    <hr>
+
+    <table id="리스트">
+        <thead>
+            <tr>
+                <th>company</th>
+                <th>position</th>
+                <th>deadline</th>
+                <th>stage</th>
+                <th>memo</th>
+                <th>변경</th>
+                <th>삭제</th>
+            </tr>
+        </thead>
+        <tbody id="items-list"></tbody>
+    </table>
+
+    <script src="/static/app1.js"></script>
+</body>
+
+</html>
