@@ -4432,3 +4432,92 @@ partial PATCH와 reset 문제는 피드백을 받은 뒤 확인했고 수정 코
 ### 분류
 
 **보조 레퍼런스**
+
+
+## 2026-09-16 경험 후보 - Flask + MongoDB 프로젝트 첫 AWS EC2 배포
+
+> **한 줄:** local에서만 돌리던 지원 일정 관리 CRUD 프로젝트를 AWS EC2에 처음 배포해, 외부 browser에서 CRUD 전체가 실제로 동작하는 것까지 연결했다.
+>
+> **날짜:** 2026-09-16 (11주차 3일차) · **분류:** 보조 레퍼런스 · **독립성:** 부분 독립
+
+---
+
+### 1. 상황
+
+- 지금까지 Flask와 MongoDB는 local 환경에서만 실행했다.
+- 이번에는 지원 일정 관리 CRUD 프로젝트를 AWS EC2 Ubuntu로 옮겨, 외부 browser에서 실제로 쓸 수 있는 형태까지 연결해야 했다.
+
+### 2. 내가 한 일 (배포 순서)
+
+EC2(Ubuntu) 생성 → WSL에서 `.pem` key로 SSH 접속 → Python·virtual environment 준비 → GitHub repo clone 후 배포할 Flask 프로젝트 찾기 → Flask·PyMongo·MongoDB 환경 구성 → Flask를 `0.0.0.0:5000`으로 실행 → Security Group에서 5000번 port 허용 → 외부 browser에서 CRUD 확인
+
+### 3. 막힌 점 → 확인 → 배운 점 (오류 위치별)
+
+**① network 단계 — SSH `Connection timed out`**
+- 확인된 원인: Security Group에 등록된 IP ≠ 현재 public IP
+- 확인: 현재 public IP와 Security Group Source 비교
+- 배움: timeout은 network / Security Group부터 본다.
+
+**② 설치 단계 — MongoDB GPG key 오류**
+- 확인된 원인: GPG key 문제로 repository 검증 실패
+- 확인: GPG key와 repository 설정 다시 구성
+
+**③ application 단계 — HTTP 500**
+- 확인된 원인: template 이름 불일치 → `TemplateNotFound`
+- 확인: Flask traceback
+- 배움: 500은 application 내부 traceback부터 본다.
+
+**④ application 단계 — HTTP 404**
+- 확인된 원인: static JavaScript file 이름 불일치 → 잘못된 path
+- 확인: request path
+- 배움: 404는 요청한 path와 실제 resource부터 본다.
+
+※ 오류 위치 판단과 해결 방법은 여러 부분에서 피드백을 받아 진행했다.
+
+### 4. 실제로 확인한 흐름
+
+browser → Public IPv4 → Security Group → EC2 Flask → EC2 MongoDB → response → JavaScript/DOM
+
+→ 이 흐름이 모두 이어져야 외부에서 CRUD가 동작한다.
+
+### 5. 결과
+
+- 외부 browser에서 POST 등록 / GET 조회 / 새로고침 후 데이터 유지 / PATCH 수정 / DELETE 삭제 모두 정상
+- local에서만 돌던 프로젝트를 remote EC2에서 실제 CRUD가 되는 상태까지 처음 연결했다.
+
+### 6. 독립성 — 부분 독립
+
+- **직접 수행한 것:** 안내에 따라 EC2 생성부터 환경 구성, Flask/MongoDB 실행,
+외부 browser CRUD 확인까지 실제 환경에서 직접 실행
+- **피드백 받은 것:** AWS/Linux 명령, 작업 위치 판단, 오류 원인 분석과 수정
+- **현재 수준:** 명령을 보지 않고 전체 배포 흐름을 혼자 재현할 수준은 아니다.
+
+### 7. 분류 — 보조 레퍼런스
+
+- 첫 실제 배포 경험이라는 의미는 있다.
+- 하지만 독립 배포와 독립 troubleshooting이 아직 확인되지 않아, 지금은 주력 경험으로 쓰지 않는다.
+
+### 8. 다시 평가할 조건
+
+- [ ] 배포 순서를 보지 않고 스스로 구성
+- [ ] local WSL / EC2 / AWS Console 작업 위치를 스스로 판단
+- [ ] 다른 Flask 프로젝트를 다시 배포
+- [ ] 기본적인 network / application 오류를 스스로 좁히기
+- [ ] terminal 종료와 상관없이 Flask를 실행하는 운영 방식 적용
+
+---
+
+### 📌 면접 부록
+
+**30초 스크립트**
+> "local에서만 실행하던 Flask + MongoDB 기반 지원 일정 관리 CRUD 프로젝트를 AWS EC2 Ubuntu에 처음 배포했습니다. SSH로 접속해 가상환경과 MongoDB를 준비하고, Flask를 0.0.0.0:5000으로 실행한 뒤 Security Group에서 5000번 포트를 허용해, 외부 브라우저에서 등록·조회·수정·삭제와 새로고침 후 데이터 유지까지 확인했습니다. 과정에서 SSH timeout, 500, 404를 겪으며 timeout은 네트워크와 Security Group, 500은 traceback, 404는 요청 경로부터 확인하는 식으로 오류 위치를 나눠 보는 법을 배웠습니다. 다만 원인 분석은 피드백을 받아 진행했고, 아직 혼자 재현할 수준은 아니라서 배포 순서를 다시 익히고 있습니다."
+> *(마지막 문장은 면접 시점 상태로 고쳐 말하기)*
+
+**예상 꼬리질문**
+- Q. 500과 404는 어떻게 다르게 봤나요? → 500은 Flask 내부 오류라 traceback(`TemplateNotFound`)을, 404는 요청 path와 실제 file 이름을 확인했다.
+- Q. 외부에서 접속이 안 되면 어디부터 보나요? → timeout이면 network / Security Group부터. 외부 접속에는 Flask가 `0.0.0.0`으로 요청 받을 준비 + Security Group port 허용이 둘 다 필요하다.
+- Q. 지금 혼자 다시 배포할 수 있나요? → 솔직하게 아직 아니다. 8번 조건 중 무엇을 채웠는지로 답한다.
+
+**면접 전 채울 빈틈**
+- [ ] 오류 4개 중 스스로 좁힌 부분 / 피드백 받은 부분 구분 (원문에 구분 없음 → 줄이지도 부풀리지도 않기)
+- [ ] GPG key 오류를 어떻게 다시 구성했는지 한 문장으로 설명 (명령 암기는 불필요)
