@@ -4521,3 +4521,91 @@ browser → Public IPv4 → Security Group → EC2 Flask → EC2 MongoDB → res
 **면접 전 채울 빈틈**
 - [ ] 오류 4개 중 스스로 좁힌 부분 / 피드백 받은 부분 구분 (원문에 구분 없음 → 줄이지도 부풀리지도 않기)
 - [ ] GPG key 오류를 어떻게 다시 구성했는지 한 문장으로 설명 (명령 암기는 불필요)
+
+
+## 2026-09-17 경험 후보 - Flask + MongoDB 프로젝트 AWS EC2 배포 → service 운영 전환
+
+> **한 줄:** terminal에 묶여 있던 Flask를 **systemd → Gunicorn → Flask** 구조로 바꿨고, reboot 후 생긴 MongoDB failed를 service 상태와 log로 확인해서 application 문제가 아니라 kernel 호환성 문제라는 걸 log에서 확인했다.
+
+- **분류:** 보조 레퍼런스
+- **독립성:** 부분 독립 (구성·원인 분석·해결에서 Assistant 안내를 받음)
+- **날짜:** 2026-09-17 (11주차 4일차)
+
+---
+
+## 상황
+- AWS EC2에 Flask + MongoDB 프로젝트를 처음 배포해서 외부 CRUD까지 성공했다
+- 하지만 Flask를 SSH terminal에서 직접 실행하고 있어서, terminal을 끄거나 EC2를 reboot하면 서버가 유지되지 않는 상태였다
+
+## 내가 한 일
+- Flask를 Gunicorn으로 실행하고 systemd service로 등록해서 SSH terminal과 분리했다
+- 실제로 검증한 것
+  - SSH를 종료해도 Flask가 계속 실행되는지
+  - EC2 reboot 후 Flask가 자동으로 다시 실행되는지
+  - `active`(지금 실행 중)와 `enabled`(boot 시 자동 시작)를 구분해서 service 상태 확인
+
+## 막힌 부분
+- reboot 과정에서 MongoDB만 `failed` 상태가 됐다
+
+## 해결 과정
+1. application 코드를 바로 고치지 않고 `systemctl status`, `journalctl`로 MongoDB startup 실패 원인을 확인했다
+2. 원인은 application이 아니라 **새로 boot된 Linux kernel과 MongoDB의 호환성 문제**였다
+3. 이미 설치되어 있던 호환되는 기존 kernel로 다시 boot했다
+4. MongoDB, Flask service, Gunicorn 5000 port, browser 접속, 기존 데이터 조회까지 정상인지 확인했다
+
+## 결과
+```
+EC2 boot
+→ systemd
+   ├─ mongod
+   └─ flask-study
+        → Gunicorn
+             → Flask
+```
+- 이 구조에서 SSH terminal과 상관없이 서비스가 동작하고, reboot 후에도 자동으로 다시 실행되는 걸 확인했다
+
+## 이 경험에서 가져갈 핵심
+- 처음에는 그냥 "서버가 안 된다"로 봤지만, 실행 상태와 log를 기준으로 보면서 **application 문제와 실행 환경 문제를 구분**했다
+- 이 과정에서 서버 문제를 좁히는 순서를 정리했다
+  - service 상태 → log → port → 내부 HTTP → 외부 network
+
+---
+
+## 독립성 정리
+
+**직접 한 것**
+- 실제 EC2 서버에서 구성하고 명령을 실행했다
+- 각 단계 결과(SSH 종료 후 유지, reboot 후 자동 실행, service 상태, 복구 후 정상 동작)를 직접 확인했다
+
+**안내를 받은 것**
+- Gunicorn/systemd 구성
+- Linux 명령
+- kernel 문제의 원인 분석과 해결 과정
+
+**면접에서 쓸 표현**
+- ❌ "혼자 처음부터 해결했다"
+- ⭕ "안내를 참고해 실제 서버에서 구성·검증하고, 각 단계의 결과를 확인하며 문제 범위를 좁혔다"
+
+---
+
+## 면접 활용 가능성
+- **분류: 보조 레퍼런스**
+- 쓸 수 있는 질문: "배포해 본 경험이 있나요?", "서버 장애를 겪어본 적 있나요?"
+- 주력 소재가 아닌 이유: 핵심 원인 분석과 해결에서 안내를 받았고, 아직 혼자 재현할 수 있는 수준은 아니다
+
+## 면접 부록
+
+**30초 스크립트**
+> AWS EC2에 Flask와 MongoDB 프로젝트를 배포했는데, 처음에는 Flask를 SSH terminal에서 직접 실행하고 있어서 terminal을 끄거나 reboot하면 서버가 유지되지 않았습니다. 그래서 안내를 참고해 Gunicorn으로 실행하고 systemd service로 등록했고, SSH를 종료해도 계속 실행되고, EC2를 reboot한 뒤에도 자동으로 다시 시작되는 것까지 직접 확인했습니다. reboot 과정에서 MongoDB가 failed 상태가 됐는데, 코드를 바로 고치지 않고 systemctl status와 journalctl로 확인해서 application이 아니라 kernel과 MongoDB의 호환성 문제라는 걸 찾았습니다. 기존 kernel로 boot해 복구한 뒤 서비스와 데이터 조회까지 정상인지 확인했습니다.
+
+**예상 꼬리질문 → 답변 방향**
+- 왜 코드부터 안 고쳤나? → service 상태와 log를 먼저 보면 application 문제인지 실행 환경 문제인지 구분할 수 있어서
+- `active`와 `enabled` 차이는? → 지금 실행 중 vs boot 시 자동 시작. 둘 다 확인해서 reboot 후 자동 실행까지 검증했다
+- kernel을 되돌린 게 근본 해결인가? → 실습 환경을 유지하려고 이미 설치된 기존 kernel로 boot한 조치라고 솔직하게 말하기
+- 혼자 한 건가? → 구성과 원인 분석은 안내를 받았고, 실제 서버에서 실행하고 결과를 확인한 건 직접 했다고 구분해서 말하기
+
+**면접 전에 채워야 할 빈틈** (원문에 없는 내용)
+- [ ] journalctl에서 실제로 본 오류 문구
+- [ ] MongoDB 문제에서 5단계 순서 중 어디까지 실제로 거쳤는지 (원인은 service 상태·log 단계에서 확인됨)
+- [ ] `flask-study.service` 파일에 무엇을 적었는지
+- [ ] 이 경험 이후 혼자 다시 해본 적이 있는지
