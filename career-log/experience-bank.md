@@ -4609,3 +4609,79 @@ EC2 boot
 - [ ] MongoDB 문제에서 5단계 순서 중 어디까지 실제로 거쳤는지 (원인은 service 상태·log 단계에서 확인됨)
 - [ ] `flask-study.service` 파일에 무엇을 적었는지
 - [ ] 이 경험 이후 혼자 다시 해본 적이 있는지
+
+
+## 2026-09-18 경험 후보 - Flask 배포에 Nginx reverse proxy 적용
+
+**작성일** 2026-09-18
+**한 줄** 외부에 직접 노출되어 있던 Gunicorn 앞에 Nginx를 두고, Gunicorn을 내부 전용으로 내린 뒤 reboot 후 전체 동작까지 검증했다.
+**키워드** `reverse proxy` `proxy_pass` `0.0.0.0 → 127.0.0.1` `Security Group 5000 삭제` `reboot 검증`
+
+---
+
+### 상황
+
+EC2에서 Flask application을 Gunicorn + systemd로 실행하고 있었고, browser가 `Public IPv4:5000`으로 Gunicorn에 직접 접근하는 구조였다. 즉 외부에 열린 문이 Gunicorn 자체였다.
+
+```
+[변경 전] Browser → Public IPv4:5000 → Gunicorn → Flask → MongoDB
+[변경 후] Browser → Nginx :80 → Gunicorn 127.0.0.1:5000 → Flask → MongoDB
+```
+
+---
+
+### 내가 한 일
+
+- Nginx를 설치하고 `location /`에 `proxy_pass`를 넣어 Gunicorn과 연결했다.
+- 적용 전 `nginx -t`로 설정 문법을 먼저 검사한 뒤 reload했다.
+- `curl`, `ss`, `systemctl`로 어느 port에서 어떤 process가 받고 있는지, request가 어디까지 도달하는지 확인했다.
+- Gunicorn bind를 `0.0.0.0:5000` → `127.0.0.1:5000`으로 변경했다.
+- Security Group의 5000 inbound rule을 삭제했다.
+- reboot 후 Nginx, Gunicorn, Flask, MongoDB가 다시 정상 동작하는지 확인했다.
+
+---
+
+### 막힌 부분 → 해결 과정
+
+**1. 처음에 실제 설정이 아닌 부분을 수정하려 했다**
+Nginx 설정 파일에서 `#`으로 comment 처리된 예제 부분을 실제 설정인 줄 알고 수정하려 했다.
+→ `#`이 붙은 줄은 실행되지 않는다는 것을 확인하고, 실제 `try_files`가 들어 있는 `location /` block을 찾아 수정했다.
+
+**2. "Flask가 EC2에서 돌고 있으면 browser가 알아서 찾아온다"고 생각했다**
+그래서 처음에는 연결이 왜 안 되는지 이해하지 못했다.
+→ 접속 경로는 **어떤 IP:port에서 어떤 process가 LISTEN하고 있는지**로 결정된다는 걸 확인했다. IP만으로 정해지는 게 아니다.
+
+**확인 방법**
+`curl http://127.0.0.1/`의 응답이 Nginx 기본 페이지에서 Flask 페이지로 바뀐 것을, 연결이 실제로 만들어졌다는 증거로 삼았다. 같은 명령을 전후로 실행해서 비교한 것이다.
+
+---
+
+### 결과
+
+- 웹 애플리케이션의 외부 진입점을 Nginx :80으로 정리했고, Gunicorn은 EC2 내부 request만 받게 됐다.
+- reboot 후에도 `Nginx → Gunicorn → Flask → MongoDB`가 손대지 않아도 다시 동작하는 것을 확인했다.
+- 부수적으로, **어느 단계까지 성공했는지를 기준으로 다음 의심 범위를 좁히는 방식**을 실제로 써봤다.
+  (:5000 성공 → Gunicorn·Flask 정상 / 내부 :80 성공 → Nginx 연결까지 정상 / 내부는 되는데 외부만 실패 → Security Group·Public IPv4 의심)
+
+---
+
+### 독립성
+
+**부분 독립.** Nginx configuration과 일부 명령은 Assistant의 안내를 참고했다.
+구조와 각 process의 역할은 이해했지만, 아무것도 보지 않고 혼자 설정을 짤 수준은 아직 아니다.
+
+면접에서 쓸 표현:
+> "안내를 참고해 실제 EC2에서 Nginx reverse proxy 구조를 구성했고, `curl`, `ss`, `systemctl`로 각 단계가 정상적으로 연결되는지 직접 검증했습니다."
+
+---
+
+### 분류 — 보조 레퍼런스
+
+**왜 주력 소재가 아닌가**: 설정 자체를 스스로 설계한 게 아니라 안내를 따라 구성·검증한 단계라서, "어떻게 판단했나"를 깊게 파고들면 답이 얇아진다.
+
+**주력 소재로 올리려면 채워야 할 것**
+- [ ] 이번 작업 중 어디까지 안 보고 했고 어디부터 안내를 봤는지 스스로 구분해두기
+- [ ] Nginx를 앞에 두는 이유를 내가 직접 겪은 근거로 말할 수 있게 되기 (지금은 "진입점 하나로 정리" 정도까지만 체감함)
+- [ ] `proxy_set_header` 유무 차이 — 아직 확인 안 함
+- [ ] HTTPS(443) 미적용
+- [ ] Nginx access/error log를 실제로 읽어본 적 없음
