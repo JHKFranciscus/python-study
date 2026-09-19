@@ -4685,3 +4685,123 @@ Nginx 설정 파일에서 `#`으로 comment 처리된 예제 부분을 실제 �
 - [ ] `proxy_set_header` 유무 차이 — 아직 확인 안 함
 - [ ] HTTPS(443) 미적용
 - [ ] Nginx access/error log를 실제로 읽어본 적 없음
+
+
+## 2026-09-19 경험 후보 - 운영 중인 Flask application 재배포
+
+- **작성일**: 2026-09-19
+- **분류**: 보조 레퍼런스
+- **독립성**: 부분 독립
+
+**한 줄**
+운영 중인 Flask application을 GitHub 기준으로 EC2에 재배포하면서, 서버에만 남아 있던 직접 수정본을 정리하고 `pull → restart → 3단계 검증`까지 수행했다.
+
+---
+
+### 상황
+
+EC2에서 다음 구조로 Flask application을 운영하고 있었다.
+
+```
+Browser → Nginx :80 → Gunicorn 127.0.0.1:5000 → Flask → MongoDB
+```
+
+이 구조를 새로 만드는 것이 아니라, 이미 떠 있는 application의 code를 수정해 새 version을 다시 올리는 재배포를 진행했다.
+
+---
+
+### 막힌 부분
+
+재배포 전에 EC2에서 `git status`를 확인했을 때 working tree가 clean하지 않았다.
+
+이전 배포 과정에서 서버에서 직접 고친 `app1.html → app2.html`, `app1.js → app2.js` 수정이 EC2에만 남아 있었고, EC2 repository는 GitHub 최신 commit보다 뒤에 있었다.
+
+이 상태에서 바로 `git pull`을 하면 `local modification` 때문에 `pull`이 중단되거나 충돌할 수 있었고, 서버에만 있던 수정도 `Git commit history`에 반영되지 않은 상태였다. 그래서 pull보다 **서버 수정본과 GitHub 상태를 먼저 맞추는 것**이 먼저였다.
+
+---
+
+### 내가 한 일
+
+1. 바로 pull하지 않고 EC2에 남아 있던 변경 내용을 먼저 확인했다.
+2. 같은 수정을 local repository에 반영하고, 재배포가 실제로 적용됐는지 눈으로 확인하려고 HTML title도 `지원 일정 관리 프로그램 - redeploy`로 바꿨다.
+3. local에서 확인 후 commit · push해 GitHub를 정본으로 만들었다.
+4. EC2의 직접 수정본을 정리하고 최신 commit을 받은 뒤 service를 restart했다.
+
+```
+local 수정 → 확인 → commit → push
+→ EC2 pull → flask-study restart
+→ curl :5000 → curl :80 → 외부 browser
+```
+
+---
+
+### 결과
+
+**① process가 실제로 교체된 것을 PID로 확인했다.**
+restart 전 Gunicorn PID는 `525 / 789`, restart 후에는 `4337 / 4338`이었다.
+
+**② 안쪽부터 바깥쪽으로 3단계로 검증했다.**
+
+- Gunicorn 직접 요청(`curl :5000`) → 변경된 title 반환
+- Nginx 경유 요청(`curl :80`) → 변경된 title 반환
+- 외부 browser(Public IPv4) → 변경된 title과 기존 MongoDB data 정상 조회
+
+즉 `GitHub 최신 code → EC2 반영 → 새 Gunicorn process 실행 → Nginx 경유 외부 접속`까지 끊기는 지점 없이 확인했다.
+
+---
+
+### 배운 점
+
+- `git pull`은 **EC2 disk의 code file**을 갱신하고, `systemctl restart flask-study`는 **기존 process를 종료하고 최신 code를 읽는 새 process를 띄운다.** 역할이 다르므로 pull만으로 실행 중인 Gunicorn process가 새 Python code를 다시 읽는다고 볼 수 없고, 이번 배포에서는 service restart로 새 process에 반영했다.
+- Gunicorn의 PID가 바뀌어도 새 process가 같은 `127.0.0.1:5000`을 LISTEN하면 Nginx 설정은 그대로 쓸 수 있다. Nginx는 PID가 아니라 port로 request를 넘기기 때문이다.
+- 배포 결과를 확인할 때는 안쪽(Gunicorn) → 바깥쪽(외부 browser) 순서로 좁히면 문제가 생겨도 어느 구간인지 바로 나온다.
+- 서버에서 직접 고친 code는 기록이 남지 않아 다음 배포에서 걸린다. 정본은 GitHub에 두고 서버는 pull로만 맞춘다.
+
+---
+
+### 독립성 구분
+
+**직접 한 것**
+- 재배포와 검증 명령을 실제 EC2에서 수행
+- git status를 통해 EC2 working tree가 clean하지 않은 상태를 직접 확인
+- restart 전후 PID 비교, 3단계 검증
+
+**안내를 참고한 것**
+- working tree가 clean하지 않은 상태에서 바로 pull하지 않고 변경 내용을 먼저 확인하는 판단과, 이후 fetch / origin/main / diff 비교 과정
+- 재배포 전체 순서를 처음에는 바로 독립 재현하지 못했고 교정 후 다시 재현했다
+
+→ 따라서 AWS/Linux와 Git 운영을 처음부터 독립적으로 처리한 경험으로 과장하지 않는다.
+
+---
+
+### 면접 활용 메타 평가
+
+**보조 레퍼런스.** 주력 소재로 두지 않는 이유는 두 가지다.
+
+1. 구조를 **구축한** 경험이 아니라 이미 구축된 구조에 새 version을 **반영한** 경험이라 기술적 난이도의 폭이 좁다.
+2. 가장 어려웠던 구간(예상 못 한 Git 상태 정리)에서 안내를 참고해서, 그 부분을 내 판단력의 근거로 내세우기 어렵다.
+
+**다만 이 경험이 강한 지점은 검증 설계다.** "배포했습니다"에서 끝나지 않고 PID로 process 교체를 확인하고 3단계로 좁혀 검증한 부분은, 배포·운영·트러블슈팅 질문이 나올 때 보조로 꺼내면 설득력이 있다.
+
+---
+
+## 면접 부록
+
+### 30초 구두 스크립트
+
+"운영 중인 Flask application을 수정해 GitHub 기준으로 EC2에 재배포해 본 경험이 있습니다. 배포 전에 서버 working tree에 직접 수정한 내용이 남아 있는 것을 확인해서, 바로 pull하지 않고 이를 local과 GitHub에 먼저 반영한 뒤 서버를 최신 상태로 맞췄습니다. 이후 Gunicorn service를 restart하고 PID가 바뀐 것으로 process가 실제로 교체된 것을 확인했으며, Gunicorn 직접 요청, Nginx 경유 요청, 외부 browser 순서로 배포 결과를 검증했습니다. 다만 예상하지 못한 Git 상태를 정리하는 일부 과정에서는 안내를 참고했습니다."
+
+### 예상 꼬리질문과 답변 방향
+
+- **"왜 바로 pull하지 않았습니까?"** → 서버에만 있던 수정이 기록 없이 사라지거나 충돌할 수 있어서, 먼저 확인하고 local·GitHub에 반영했다고 답한다.
+- **"pull만 하고 restart를 안 하면 어떻게 됩니까?"** → file은 최신이지만 실행 중인 process가 이전 code를 들고 있어 응답이 바뀌지 않는다고 답한다.
+- **"PID가 바뀌면 Nginx 설정도 바꿔야 합니까?"** → 새 process도 같은 127.0.0.1:5000을 LISTEN하므로 필요 없고, Nginx는 PID가 아니라 port로 전달한다고 답한다.
+- **"배포가 실패하면 어디부터 봅니까?"** → curl :5000 → curl :80 → 외부 browser 순서로 구간을 좁힌다고 답한다.
+- **"Git은 어느 정도 다룹니까?"** → 기본 배포 흐름은 직접 하지만 예상 못 한 working tree 상태 정리는 아직 안내를 참고한다고 솔직하게 답한다.
+
+### 아직 빈틈 (면접 전 채울 것)
+
+- **rollback**: 재배포가 잘못됐을 때 이전 version으로 되돌리는 절차를 아직 해보지 않았다. 이 질문이 꼬리로 나올 가능성이 높다.
+- **무중단**: restart 동안 서비스가 잠깐 끊겼는지 확인하지 않았다.
+- untracked였던 `~venvs/`를 결국 어떻게 처리했는지 기록에 없다. (.gitignore 처리 여부 확인 필요)
+- `fetch`, `origin/main`, diff 비교를 다음 배포에서 안내 없이 쓸 수 있는지 한 번 더 확인할 것.
