@@ -15,7 +15,7 @@ allowed_stage = ["planned", "submitted", "interview", "finished"]
 
 @app.route("/")
 def home():
-    return render_template("app1.html")
+    return render_template("app2.html")
 
 @app.route("/application", methods=["POST"])
 def add_item():
