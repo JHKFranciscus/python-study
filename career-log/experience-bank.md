@@ -4805,3 +4805,16 @@ restart 전 Gunicorn PID는 `525 / 789`, restart 후에는 `4337 / 4338`이었�
 - **무중단**: restart 동안 서비스가 잠깐 끊겼는지 확인하지 않았다.
 - untracked였던 `~venvs/`를 결국 어떻게 처리했는지 기록에 없다. (.gitignore 처리 여부 확인 필요)
 - `fetch`, `origin/main`, diff 비교를 다음 배포에서 안내 없이 쓸 수 있는지 한 번 더 확인할 것.
+
+
+## 2026-09-21 경험 후보 - 후속 재현
+
+같은 운영 환경에서 두 번째 재배포를 진행했다.
+
+이번에는 재배포 command의 순서를 안내받지 않고 다음 흐름을 직접 구성해 수행했다.
+
+local 수정 → commit / push → EC2 pull → flask-study restart → :5000 / :80 / browser 검증 → reboot → service 및 application 재검증
+
+최초 재배포 경험 이후 같은 흐름을 다시 독립적으로 재현했다.
+
+reboot 후 mongod, flask-study, nginx의 자동 기동과 application 동작까지 확인했다.
