@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>시설 장애 신고 관리 서비스</title>
+</head>
+
+<body>
+    <section>
+        <div>
+            <label for="new-title">제목</label>
+            <input type="text" id="new-title">
+        </div>
+
+        <div>
+            <label for="new-location">장소</label>
+            <input type="text" id="new-location">
+        </div>
+
+        <div>
+            <label for="new-category">분류</label>
+            <input type="text" id="new-category" placeholder="network, computer, facility">
+        </div>
+
+        <div>
+            <label for="new-priority">우선순위</label>
+            <input type="text" id="new-priority" placeholder="low, normal, high">
+        </div>
+
+        <div>
+            <label for="new-report_date">보고 일자</label>
+            <input type="date" id="new-report_date">
+        </div>
+
+        <div>
+            <label for="new-memo">메모</label>
+            <input type="text" id="new-memo">
+        </div>
+
+        <button type="button" id="add-button">등록</button>
+    </section>
+
+    <hr>
+
+    <section>
+        <select id="category">
+            <option value="">전체 category</option>
+            <option value="network">network</option>
+            <option value="computer">computer</option>
+            <option value="facility">facility</option>
+        </select>
+
+        <select id="priority">
+            <option value="">전체 priority</option>
+            <option value="low">low</option>
+            <option value="normal">normal</option>
+            <option value="high">high</option>
+        </select>
+
+        <select id="status">
+            <option value="">전체 status</option>
+            <option value="reported">reported</option>
+            <option value="processing">processing</option>
+            <option value="done">done</option>
+        </select>
+
+        <label for="start_date">시작일자</label>
+        <input type="date" id="start_date">
+
+        <label for="end_date">종료일자</label>
+        <input type="date" id="end_date">
+
+        <select id="sort">
+            <option value="">등록한 순서</option>
+            <option value="latest">latest</option>
+            <option value="oldest">oldest</option>
+        </select>
+    </section>
+
+    <hr>
+
+    <table>
+        <thead>
+            <tr>
+                <th>제목</th>
+                <th>장소</th>
+                <th>분류</th>
+                <th>우선순위</th>
+                <th>보고일자</th>
+                <th>진행상태</th>
+                <th>메모</th>
+                <th>변경버튼</th>
+                <th>삭제버튼</th>
+            </tr>
+        </thead>
+        <tbody id="issues-list"></tbody>
+    </table>
+
+    <script src="/static/app1.js"></script>
+</body>
+
+</html>
