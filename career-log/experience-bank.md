@@ -4820,9 +4820,7 @@ local 수정 → commit / push → EC2 pull → flask-study restart → :5000 / 
 reboot 후 mongod, flask-study, nginx의 자동 기동과 application 동작까지 확인했다.
 
 
-## 2026-09-22 경험 후보 - 
-
-# 경험 후보 — CRUD 구현과 명세 충족의 차이를 확인한 첫 웹 모의시험
+## 2026-09-22 경험 후보 - CRUD 구현과 명세 충족의 차이를 확인한 첫 웹 모의시험
 
 작성일: 2026-09-22 · 분류: 보조 레퍼런스 · 독립성: 부분 독립
 
@@ -4832,11 +4830,11 @@ reboot 후 mongod, flask-study, nginx의 자동 기동과 application 동작까�
 
 ---
 
-## 1. 상황
+### 1. 상황
 첫 웹 모의시험에서 시설 장애 신고 관리 서비스를 구현했다. 구현 순서나 route 구조를 미리 안내받지 않고, 요구사항만 보고 아래 기능을 하나의 application으로 연결해야 했다.
 - 등록 · 조건 조회 · 날짜 범위 조회 · 정렬 · status 수정 · 삭제 · 수정·삭제 후 현재 filter 유지 재조회
 
-## 2. 내가 직접 한 판단 — 독립 성공
+### 2. 내가 직접 한 판단 — 독립 성공
 CRUD별로 request의 역할을 나눴다.
 
 ```text
@@ -4855,7 +4853,7 @@ JavaScript → Flask → MongoDB → Flask → JavaScript → 현재 조건으�
 - 잘못된 ObjectId는 `400`, 형식은 정상이지만 document가 없으면 `404`로 구분했다.
 - JavaScript에서는 `response.ok`를 확인한 뒤 오류를 `throw`하도록 구현했다.
 
-## 3. 문제 → 교정 — 피드백 후 보완
+### 3. 문제 → 교정 — 피드백 후 보완
 기능은 정상 동작했지만, 최초 구현에서 validation 일부를 빠뜨렸다.
 - `required field` POST 필수 field의 key 누락
 - `allowed value` GET category / priority / status / sort 허용값 검사
@@ -4863,7 +4861,7 @@ JavaScript → Flask → MongoDB → Flask → JavaScript → 현재 조건으�
 
 피드백으로 누락 위치를 확인한 뒤 validation을 직접 수정했다. 따라서 전체를 완전 독립 성공으로 기록하지 않는다.
 
-## 4. 원인
+### 4. 원인
 구현할 기능을 먼저 생각했고, 명세의 조건을 구현 전에 별도로 분리하지 않았다. 그래서 다음 5가지를 하나의 체크리스트로 보지 못했다.
 
 ```text
@@ -4874,18 +4872,18 @@ allowed value = 허용값
 성공 status code = 성공 응답 조건
 ```
 
-## 5. 배운 점
+### 5. 배운 점
 ```text
 기능이 동작한다 ≠ 명세를 모두 만족한다
 ```
 이번 구현에서 부족했던 부분은 CRUD 자체보다 명세를 구현 전에 빠짐없이 분해하는 과정이었다.
 
-## 6. 이후 적용
+### 6. 이후 적용
 다음 모의시험부터는 코드를 작성하기 전에 요구사항에서 위 5가지를 먼저 추출하고, 정상 흐름과 예외 흐름을 함께 체크한 뒤 구현한다.
 
 ---
 
-## 면접 활용
+### 면접 활용
 
 **보조 레퍼런스인 이유** — 첫 모의시험 경험이고 부분 독립이며, 배운 점은 아직 적용 전이다. 그래서 단독 주력 소재보다는 명세 확인·예외 처리 질문의 보조 사례로 쓴다.
 
@@ -4900,3 +4898,95 @@ allowed value = 허용값
 **빈틈 체크리스트** (원문에 없음 — 면접 전에 채우기)
 - [ ] 피드백을 누구(무엇)에게서 받았는지
 - [ ] 수정한 validation이 필수 key 누락·허용값 밖의 값에 어떤 status code로 응답하는지
+
+
+## 2026-09-23 경험 후보 - Flask application 교체 중 발생한 systemd `203/EXEC`
+
+> 작성일 2026-09-23 · 분류 **보조 레퍼런스** · 독립성 **부분 독립**
+>
+> **한 줄** 기존 EC2 배포 환경에 새 Flask application을 연결하는 과정에서 Gunicorn 실행 경로를 잘못 변경해 `203/EXEC`를 겪었고, 원인은 안내를 받아 확인한 뒤 경로를 되돌려 정상 배포까지 완료했다.
+>
+> **키워드** `ExecStart` · `203/EXEC` · 어디서 / 무엇으로 / 무엇을 · 구간별 검증 · 부분 독립
+
+### 1. 상황
+
+- 첫 웹 모의시험으로 만든 시설 장애 신고 관리 서비스를 기존 EC2 환경에 배포했다.
+- EC2 code는 최신 commit으로 맞췄지만, 기존 `flask-study.service`는 여전히 이전 application을 실행하고 있었다.
+- 직접 확인한 뒤 이번 application에 맞게 두 군데를 바꿨다.
+  - `WorkingDirectory` : `day0072/f2` → `day0079/f1`
+  - Gunicorn target : `app2:app` → `app1:app`
+
+### 2. 문제 → 원인 → 해결
+
+- **문제** application 위치를 바꾸는 과정에서 `ExecStart`의 Gunicorn 실행 경로까지 새 application 이름에 맞춰 바꿨다. service가 시작되지 않았고, `systemctl status flask-study`에서 `status=203/EXEC`를 확인했다.
+- **직접 원인** 잘못된 Gunicorn 경로. 새 application이 `day0079/f1`에 있다고 Gunicorn 실행 파일도 그 위치로 옮겨지는 건 아니었다. *(이 해석은 안내를 받아 확인)*
+- **근본 원인** 세 역할을 섞어 생각했다.
+  - `WorkingDirectory` → **어디서** : application이 있는 위치
+  - `.../bin/gunicorn` → **무엇으로** : 실제 Gunicorn 실행 파일
+  - `app1:app` → **무엇을** : 실행할 Flask application
+- **해결** 실제 존재하는 기존 virtual environment의 Gunicorn 경로로 수정 → `daemon-reload → restart → active`
+
+### 3. 결과 — 구간별 확인
+
+- `127.0.0.1:5000` → Gunicorn → Flask 정상
+- `127.0.0.1:80` → Nginx → Gunicorn → Flask 정상
+- Windows browser에서 Public IPv4 접속 → POST · 조건 GET · 날짜 범위 / 정렬 · PATCH · DELETE 정상
+
+### 4. 이 경험에서 남길 것
+
+- **① 상황에서** code가 최신이어도 실행 중인 process는 이전 것일 수 있다. `push → GitHub 최신` · `pull → EC2 disk 최신` · `restart → 실행 process 최신`은 각각 다른 상태라는 걸 다시 확인했다.
+- **② 이번 배포에서는** 바꿀 건 "어디서"와 "무엇을"뿐이었고, "무엇으로"(기존 Gunicorn 실행 파일)는 그대로 둬야 했다.
+
+### 5. 독립성 — 확인은 직접 → 해석·수정 일부는 도움 → 재기동·검증은 직접
+
+**직접 찾고 확인한 것**
+- EC2와 service 현재 상태 확인
+- 이번 application directory와 Flask module 확인
+- `systemctl status`로 `203/EXEC` 확인
+
+**직접 실행·검증한 것**
+- 최신 code 반영
+- 수정 후 service 재기동
+- Gunicorn / Nginx / 외부 browser 구간별 검증
+
+**도움 받은 것**
+- `203/EXEC`의 원인을 Gunicorn 실행 경로 문제로 해석
+- service 수정 과정 일부
+
+→ 완전 독립 해결 사례가 아니라 **부분 독립** 사례로 기록한다.
+
+---
+
+### 면접 부록
+
+**왜 보조 레퍼런스인가** 원인 해석을 안내 받아서 단독 트러블슈팅 사례로는 약하다. 대신 구간별 검증을 직접 했고 직접/도움 경계를 정확히 말할 수 있어서, 배포 경험을 받쳐 주는 예시로 쓰기 좋다.
+
+**30초 스크립트**
+
+> 첫 웹 모의시험으로 만든 Flask 서비스를 기존 EC2에 배포하면서 systemd 설정을 새 application에 맞게 바꿨는데, Gunicorn 실행 파일 경로까지 바꾸는 바람에 203/EXEC로 service가 시작되지 않았습니다. 원인 해석과 설정 수정 일부는 안내를 받았고, 기존 virtual environment 경로로 되돌려 복구했습니다. 이후 Gunicorn, Nginx, 외부 browser 순서로 구간을 나눠 직접 검증했습니다. 이 경험으로 실행 위치, 실행 파일, 실행 대상이 서로 다른 설정이라는 걸 구분하게 됐습니다.
+
+**예상 꼬리질문**
+- **203/EXEC는 무슨 뜻인가요?** → 안내로 알게 됐다고 솔직히 말하고 뜻을 설명한다. systemd가 `ExecStart`의 실행 파일을 실행하지 못했다는 뜻이고, 경로가 틀려 파일이 없거나 실행 권한이 없을 때 주로 난다.
+- **어디까지 직접 했나요?** → 상태 확인, `203/EXEC` 확인, 재기동, 구간별 검증은 직접. 원인 해석과 service 수정 일부는 안내를 받았다.
+- **code를 최신으로 맞췄는데 왜 이전 application이 실행됐나요?** → pull은 disk의 file만 바꾼다. 이번엔 service가 이전 directory(`day0072/f2`)와 `app2:app`을 가리키고 있어서 service 설정부터 바꿔야 했고, service 파일을 고치면 `daemon-reload → restart`까지 해야 반영된다.
+
+**빈틈 체크** (원문에 없음 → 면접 전 기억으로 채우기)
+- [ ] 안내를 누구·무엇에게 받았는지
+- [ ] "service 수정 과정 일부"가 구체적으로 어떤 단계였는지
+도움을 받은 부분
+- service 파일을 nano로 수정하는 명령
+- WorkingDirectory와 Gunicorn target 변경 방향
+- service 변경 후 daemon-reload가 필요하다는 점
+- 203/EXEC를 잘못된 ExecStart 경로 문제로 해석한 부분
+- [ ] 잘못 바꾼 Gunicorn 경로와 실제 경로 (원문엔 `.../bin/gunicorn`만 있음)
+잘못 바꾼 Gunicorn 경로
+/home/ubuntu/python-study/2026-09/day0072/f2/~venvs/day0079-f1/bin/gunicorn
+
+실제 Gunicorn 경로
+/home/ubuntu/python-study/2026-09/day0072/f2/~venvs/day0072-f2/bin/gunicorn
+- [ ] 같은 오류를 다시 만나면 먼저 무엇을 확인할지
+1. systemctl status flask-study --no-pager -l
+2. ExecStart와 exit status 확인
+3. systemctl cat flask-study로 실제 service 설정 확인
+4. ExecStart에 적힌 실행 파일 경로가 실제 존재하는지 확인
+5. 수정했다면 daemon-reload → restart → 상태 재확인
